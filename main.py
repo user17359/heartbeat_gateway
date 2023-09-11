@@ -19,15 +19,16 @@ NOTIFY_CHARACTERISTIC_UUID = (
     "34800002-7185-4d5d-b431-630e7050e8f0"
 )
 
-sensor_options = ["acc", "gyro", "mag"]
+sensor_options = ["acc", "gyro", "mag", "ecg"]
 
 options_dict = {
     "acc": "/Meas/Acc/13",
     "gyro": "/Meas/Gyro/13",
-    "mag": "/Meas/Magn/13"
+    "mag": "/Meas/Magn/13",
+    "ecg": "/Meas/ECG/125"
 }
 
-df = pd.DataFrame(columns=["timestamp", "x", "y", "z"])
+df = pd.DataFrame
 
 state = {"verbose": False}
 
@@ -42,13 +43,18 @@ def sensor_callback(value: str):
 def app(
         connection_time: float,
         sensor: Annotated[
-            str, typer.Option(help="Sensor from which data will be registered.", prompt="Choose sensor (acc/gyro/mag)",
+            str, typer.Option(help="Sensor from which data will be registered.", prompt="Choose sensor (acc/gyro/mag/ecg)",
                               callback=sensor_callback)
         ],
         verbose: bool = False
 ):
     if verbose:
         state["verbose"] = True
+    global df
+    if sensor == "ecg":
+        df = pd.DataFrame(columns=["timestamp", "val"])
+    else:
+        df = pd.DataFrame(columns=["timestamp", "x", "y", "z"])
     asyncio.run(async_app(connection_time, options_dict[sensor]))
     df.to_csv('result.csv', index=False)
     print("Data saved to [blue]results.csv[blue] :floppy_disk:")
@@ -60,8 +66,9 @@ async def async_app(time, sensor):
         await timed_connection(address, time, sensor)
 
 
-async def notification_handler(sender, data):
-    """Simple notification handler which prints the data received."""
+async def notification_handler_imu(sender, data):
+    """Simple notification handler for one of IMU sensors"""
+    print(data)
     d = DataView(data)
     # Dig data from the binary
     timestamp = d.get_uint_32(2)
@@ -71,6 +78,23 @@ async def notification_handler(sender, data):
 
     df.loc[len(df)] = [timestamp, x, y, z]
     msg = "timestamp: {}, x: {}, y: {}, z: {}".format(timestamp, x, y, z)
+    if state["verbose"]:
+        print(msg)
+
+
+async def notification_handler_ecg(sender, data):
+    """Simple notification handler for ECG sensor"""
+    d = DataView(data)
+    val = []
+
+    # Dig data from the binary
+    for i in range(0, 16):
+        val.append(d.get_int_32(6 + 4*i))
+
+    timestamp = d.get_uint_32(2)
+    for i in range(0, 16):
+        df.loc[len(df)] = [timestamp, val[i]]
+    msg = "timestamp: {}, val: {}".format(timestamp, val)
     if state["verbose"]:
         print(msg)
 
@@ -90,7 +114,10 @@ async def timed_connection(address, time, sensor):
         await client.connect()
         if state["verbose"]:
             print("Enabling notifications")
-        await client.start_notify(NOTIFY_CHARACTERISTIC_UUID, notification_handler)
+        if sensor == options_dict["ecg"]:
+            await client.start_notify(NOTIFY_CHARACTERISTIC_UUID, notification_handler_ecg)
+        else:
+            await client.start_notify(NOTIFY_CHARACTERISTIC_UUID, notification_handler_imu)
         if state["verbose"]:
             print("Subscribing datastream")
         await client.write_gatt_char(WRITE_CHARACTERISTIC_UUID,
@@ -98,7 +125,7 @@ async def timed_connection(address, time, sensor):
         if state["verbose"]:
             await asyncio.sleep(time)
         else:
-            for value in track(range(100), description="Listening... "):
+            for _ in track(range(100), description="Listening... "):
                 await asyncio.sleep(time / 100)
 
         if state["verbose"]:
