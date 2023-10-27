@@ -23,6 +23,6 @@ class HeartRateService(Service):
         # Note that notification is asynchronous (you must await something at some point after calling this).
         flags = 0
 
-        # Bluetooth data is little endian.
+        # Bluetooth's data is little endian.
         rate = struct.pack("<BB", flags, new_rate)
         self.heart_rate_measurement.changed(rate)
