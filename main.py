@@ -95,7 +95,8 @@ async def async_startup():
     while True:
         # Update the heart rate.
         print("Current seconds " + str(time_elapsed))
-        sched
+        # Check if any scheduled event is due
+        scheduler.run(False)
         # Handle dbus requests.
         await asyncio.sleep(5)
         time_elapsed = time_elapsed + 5
