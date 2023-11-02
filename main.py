@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-import numpy
+import sched
 import pandas as pd
 import typer
 import asyncio
 from rich import print
 from typing_extensions import Annotated
 
+from bt.gateway.services.sensor_service import SensorService
 from bt.sensor.scan_sensor import scan_sensor
 from bt.sensor.timed_connection import timed_connection
 from bt.gateway.services.test_service import HeartRateService
@@ -16,8 +17,6 @@ from bluez_peripheral.util import *
 from bluez_peripheral.advert import Advertisement
 from bluez_peripheral.agent import NoIoAgent
 from bluez_peripheral.gatt.service import ServiceCollection
-
-from random import randrange
 
 typer_app = typer.Typer()
 
@@ -67,6 +66,7 @@ def startup():
 
 async def async_startup():
     bus = await get_message_bus()
+    scheduler = sched.scheduler()
 
     service_collection = ServiceCollection()
 
@@ -75,6 +75,9 @@ async def async_startup():
 
     connectivity_service = ConnectivityService()
     service_collection.add_service(connectivity_service)
+
+    sensor_service = SensorService(scheduler)
+    service_collection.add_service(sensor_service)
 
     await service_collection.register(bus)
 
@@ -92,6 +95,7 @@ async def async_startup():
     while True:
         # Update the heart rate.
         print("Current seconds " + str(time_elapsed))
+        sched
         # Handle dbus requests.
         await asyncio.sleep(5)
         time_elapsed = time_elapsed + 5
