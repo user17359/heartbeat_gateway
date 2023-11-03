@@ -44,29 +44,6 @@ class SensorService(Service):
     def new_measurement(self, value, options):
         data = json.loads(value)
         self.current_sensor = data["mac"]
-        now = datetime.now()
-<<<<<<< HEAD
-        run_at = datetime(now.year,
-                          now.month,
-                          now.day,
-                          data["startHour"],
-                          data["startMinute"])
-        stop_at = datetime(now.year,
-                           now.month,
-                           now.day,
-                           data["endHour"],
-                           data["endMinute"])
-
-        print(run_at)
-        print(stop_at)
-
-        self.start_event = self.scheduler.enterabs(run_at.timestamp(),
-                                                   10,
-                                                   self.start_measurement)
-        self.end_event = self.scheduler.enterabs(stop_at.timestamp(),
-                                                 10,
-                                                 self.end_measurement)
-=======
         self.run_at = datetime(now.year,
                                now.month,
                                now.day,
@@ -78,10 +55,12 @@ class SensorService(Service):
                                data["endHour"],
                                data["endMinute"])
 
+        print(self.run_at)
+        print(self.stop_at)
+
         self.start_event = self.scheduler.enterabs(self.run_at.timestamp(),
                                                    10,
                                                    self.start_measurement())
         self.end_event = self.scheduler.enterabs(self.end_at.timestamp(),
                                                  10,
                                                  self.end_measurement())
->>>>>>> 04c2e0f1515f43310230a912b4914a8da107148d
