@@ -43,10 +43,12 @@ class SensorService(Service):
                            data["endHour"],
                            data["endMinute"])
 
+        print(run_at)
+        print(stop_at)
+
         self.start_event = self.scheduler.enterabs(run_at.timestamp(),
                                                    10,
-                                                   self.start_measurement())
+                                                   self.start_measurement)
         self.end_event = self.scheduler.enterabs(stop_at.timestamp(),
                                                  10,
-                                                 self.end_measurement())
-
+                                                 self.end_measurement)

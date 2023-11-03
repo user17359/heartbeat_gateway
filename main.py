@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import time
 import sched
 import pandas as pd
 import typer
@@ -53,10 +54,10 @@ def timed(
     print("Data saved to [blue]results.csv[blue] :floppy_disk:")
 
 
-async def async_timed(time, sensor):
+async def async_timed(duration, sensor):
     address = await scan_sensor()
     if address is not None:
-        await timed_connection(address, time, sensor, df, state)
+        await timed_connection(address, duration, sensor, df, state)
 
 
 @typer_app.command()
@@ -66,7 +67,7 @@ def startup():
 
 async def async_startup():
     bus = await get_message_bus()
-    scheduler = sched.scheduler()
+    scheduler = sched.scheduler(time.time, time.sleep)
 
     service_collection = ServiceCollection()
 
