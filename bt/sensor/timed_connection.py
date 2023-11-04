@@ -1,6 +1,7 @@
 import asyncio
 
 from bleak import BleakClient
+from rich import print
 from rich.progress import track
 
 from data.avaiable_sensors import options_dict
@@ -13,6 +14,10 @@ WRITE_CHARACTERISTIC_UUID = (
 NOTIFY_CHARACTERISTIC_UUID = (
     "34800002-7185-4d5d-b431-630e7050e8f0"
 )
+
+
+def launch_timed(address, time, sensor, df, state):
+    asyncio.create_task(timed_connection(address, time, sensor, df, state))
 
 
 async def timed_connection(address, time, sensor, df, state):
@@ -52,6 +57,6 @@ async def timed_connection(address, time, sensor, df, state):
             print("Stop notifications")
         await client.stop_notify(NOTIFY_CHARACTERISTIC_UUID)
     except Exception as e:
-        print(e)
+        print('[red]' + repr(e) + '[red]')
     finally:
         await client.disconnect()
