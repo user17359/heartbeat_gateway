@@ -11,7 +11,7 @@ async def notification_handler_imu(_, data, df, state):
     z = d.get_float_32(14)
 
     # Adding data to dataframe for later saving
-    df.loc[len(df)] = [timestamp, x, y, z]
+    # df.loc[len(df)] = [timestamp, x, y, z]
 
     if state["verbose"]:
         msg = "timestamp: {}, x: {}, y: {}, z: {}".format(timestamp, x, y, z)
@@ -30,8 +30,8 @@ async def notification_handler_ecg(_, data, df, state):
         val.append(d.get_int_32(6 + 4*i))
 
     # Adding data to dataframe for later saving
-    for i in range(0, 16):
-        df.loc[len(df)] = [timestamp, val[i]]
+    # for i in range(0, 16):
+        # df.loc[len(df)] = [timestamp, val[i]]
 
     if state["verbose"]:
         msg = "timestamp: {}, val: {}".format(timestamp, val)

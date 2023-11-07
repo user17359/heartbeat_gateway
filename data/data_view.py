@@ -12,10 +12,13 @@ class DataView:
         self.bytes_per_element = 1
 
     def __get_binary(self, start_index, byte_count, signed=False):
-        integers = [self.array[start_index + x] for x in range(byte_count)]
-        bytes = [integer.to_bytes(
-            self.bytes_per_element, byteorder='little', signed=signed) for integer in integers]
-        return reduce(lambda a, b: a + b, bytes)
+        if len(self.array) >= start_index + byte_count:
+            integers = [self.array[start_index + x] for x in range(byte_count)]
+            bytes = [integer.to_bytes(
+                self.bytes_per_element, byteorder='little', signed=signed) for integer in integers]
+            return reduce(lambda a, b: a + b, bytes)
+        else:
+            return b'ff\xe6?'
 
     def get_uint_16(self, start_index):
         bytes_to_read = 2
