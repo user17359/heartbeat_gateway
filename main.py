@@ -87,23 +87,28 @@ async def async_startup():
     agent = NoIoAgent()
     await agent.register(bus)
 
-    adv_time = 30
+    adv_time = 60
 
     print("Start of advertisement :loudspeaker:")
-    advert = Advertisement("Heartbeat gateway 2809", ["180D"], 0x008D, adv_time)
+    advert = Advertisement("Heartbeat 2809", ["180D"], 0x008D, adv_time)
     await advert.register(bus, adapter)
     time_elapsed = 0
 
-    while True:
-        # Update the heart rate.
-        print("Current seconds " + str(time_elapsed))
-        # Check if any scheduled event is due
-        scheduler.run(False)
-        # Handle dbus requests.
-        await asyncio.sleep(5)
-        time_elapsed = time_elapsed + 5
-        if time_elapsed == adv_time:
-            print("End of advertisement :no_entry_sign:")
+    try:
+        while True:
+            # Update the heart rate.
+            print("Current seconds " + str(time_elapsed))
+            # Check if any scheduled event is due
+            scheduler.run(False)
+            # Handle dbus requests.
+            await asyncio.sleep(5)
+            time_elapsed = time_elapsed + 5
+            if time_elapsed == adv_time:
+                print("End of advertisement :no_entry_sign:")
+    except KeyboardInterrupt:
+        print("Exiting :wave:")
+        raise
+
 
 
 if __name__ == '__main__':

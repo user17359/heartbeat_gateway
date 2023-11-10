@@ -18,12 +18,16 @@ NOTIFY_CHARACTERISTIC_UUID = (
 )
 
 
-def launch_timed(sensor, df, state, client):
-    asyncio.create_task(timed_connection(sensor, df, state, client))
+def launch_timed(sensor, df, state, client, service):
+    asyncio.create_task(timed_connection(sensor, df, state, client, service))
 
 
-def launch_stop(client):
-    asyncio.create_task(stop_connection(client))
+def launch_stop(client, service):
+    asyncio.create_task(stop_connection(client, service))
+
+
+def launch_disconnect(client, service):
+    asyncio.create_task(disconnect_peripheral(client, service))
 
 
 async def start_connection(address, bus, adapter):
@@ -32,7 +36,7 @@ async def start_connection(address, bus, adapter):
     try:
         await client.connect()
 
-        advert = Advertisement("Heartbeat gateway 2809", ["180D"], 0x008D, 15)
+        advert = Advertisement("Heartbeat 2809", ["180D"], 0x008D, 15)
         await advert.register(bus, adapter)
 
     except Exception as e:
@@ -40,15 +44,15 @@ async def start_connection(address, bus, adapter):
     return client
 
 
-async def timed_connection(sensor, df, state, client):
+async def timed_connection(sensor, df, state, client, service):
     """Connecting to chosen sensor for a fixed amount of seconds"""
     try:
         # choosing handler appropriate to received data
         if sensor == "ecg":
-            async def handler(_, data): await notification_handler_ecg(_, data, df, state)
+            async def handler(_, data): await notification_handler_ecg(_, data, df, state, service)
             await client.start_notify(NOTIFY_CHARACTERISTIC_UUID, handler)
         else:
-            async def handler(_, data): await notification_handler_imu(_, data, df, state)
+            async def handler(_, data): await notification_handler_imu(_, data, df, state, service)
             await client.start_notify(NOTIFY_CHARACTERISTIC_UUID, handler)
 
         # sending message via GATT that we want to subscribe to chosen sensor
@@ -60,10 +64,15 @@ async def timed_connection(sensor, df, state, client):
         print('[red]' + repr(e) + '[red]')
 
 
-async def stop_connection(client):
+async def stop_connection(client, service):
     await client.write_gatt_char(WRITE_CHARACTERISTIC_UUID, bytearray([2, 99]), response=True)
     print("Unsubscribing")
     await client.stop_notify(NOTIFY_CHARACTERISTIC_UUID)
     print("Stopping notifications")
+    await disconnect_peripheral(client, service)
+
+
+async def disconnect_peripheral(client, service):
     await client.disconnect()
     print("Disconnected")
+    service.update_progress({"state": "empty", "info": ""})
