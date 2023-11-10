@@ -52,7 +52,7 @@ async def timed_connection(sensor, df, state, client, service):
             async def handler(_, data): await notification_handler_ecg(_, data, df, state, service)
             await client.start_notify(NOTIFY_CHARACTERISTIC_UUID, handler)
         else:
-            async def handler(_, data): await notification_handler_imu(_, data, df, state, service)
+            async def handler(_, data): await notification_handler_imu(_, data, df, state, service, sensor)
             await client.start_notify(NOTIFY_CHARACTERISTIC_UUID, handler)
 
         # sending message via GATT that we want to subscribe to chosen sensor

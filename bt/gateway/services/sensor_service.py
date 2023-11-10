@@ -137,13 +137,15 @@ class SensorService(Service):
             info = {
                 "state": self.sensors[self.current_mac]["state"],
                 "label": self.sensors[self.current_mac]["label"],
-                "startTime": str(start_time.hour) + ":" + str(start_time.minute)
+                "startTime": str(start_time.hour) + ":" + str(start_time.minute),
+                "units": self.sensors[self.current_mac]["units"]
             }
         else:
             info = {
                 "state": "empty",
                 "label": "",
-                "startTime": ""
+                "startTime": "",
+                "units": []
             }
         json_list = json.dumps(info)
         data = bytes(json_list, "utf-8")
