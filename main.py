@@ -10,7 +10,7 @@ from typing_extensions import Annotated
 from bt.gateway.services.sensor_service import SensorService
 from bt.sensor.scan_sensor import scan_sensor
 from bt.sensor.timed_connection import timed_connection, launch_timed
-from bt.gateway.services.test_service import HeartRateService
+from bt.gateway.services.event_service import EventService
 from bt.gateway.services.connectivity_service import ConnectivityService
 from data.avaiable_sensors import sensor_options
 
@@ -73,8 +73,8 @@ async def async_startup():
 
     service_collection = ServiceCollection()
 
-    heart_rate_service = HeartRateService()
-    service_collection.add_service(heart_rate_service)
+    event_service = EventService()
+    service_collection.add_service(event_service)
 
     connectivity_service = ConnectivityService()
     service_collection.add_service(connectivity_service)

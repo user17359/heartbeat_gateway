@@ -137,7 +137,7 @@ class SensorService(Service):
             info = {
                 "state": self.sensors[self.current_mac]["state"],
                 "label": self.sensors[self.current_mac]["label"],
-                "startTime": str(start_time.hour) + ":" + str(start_time.minute),
+                "startTime": "{:02d}:{:02d}".format(start_time.hour, start_time.minute),
                 "units": self.sensors[self.current_mac]["units"]
             }
         else:
