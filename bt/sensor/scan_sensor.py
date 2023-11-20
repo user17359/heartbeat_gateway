@@ -1,7 +1,7 @@
 from bleak import BleakScanner
 from rich import print
 
-from bt.gateway.data_classes.bt_device import BtDevice
+from bt.app.data_classes.bt_device import BtDevice
 
 name_key = "Movesense"
 

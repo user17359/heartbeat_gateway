@@ -1,6 +1,4 @@
-import asyncio
-# import pandas as pd
-from threading import Thread
+import pandas as pd
 from datetime import datetime
 from rich import print
 
@@ -45,7 +43,7 @@ class SensorService(Service):
             self.sensors[mac]["client"],
             self
         )
-        # self.sensors[mac]["df"].to_csv(label + '.csv', index=False)
+        self.sensors[mac]["df"].to_csv(self.sensors[mac]["label"] + '.csv', index=False)
         # self.update_progress({"state": "empty", "info": ""})
         print("Data saved to [blue]" + self.sensors[mac]["label"] + ".csv[blue] :floppy_disk:")
 
@@ -103,7 +101,12 @@ class SensorService(Service):
                                             self.end_measurement,
                                             argument=(mac,))
 
-        # df = pd.DataFrame(columns=["timestamp", "x", "y", "z"])
+        if units[0] == "ecg":
+            df = pd.DataFrame(columns=["timestamp", "x", "y", "z"])
+        else:
+            df = pd.DataFrame(columns=["timestamp", "value"])
+
+        self.sensors[mac]["df"] = df
 
         self.sensors[mac]["start_event"] = start_event
         self.sensors[mac]["end_event"] = end_event

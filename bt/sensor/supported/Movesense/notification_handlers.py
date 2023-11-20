@@ -1,4 +1,4 @@
-from data.data_view import DataView
+from bt.sensor.utils.data_view import DataView
 
 
 async def notification_handler_imu(_, data, df, state, service, sensor):
@@ -11,7 +11,7 @@ async def notification_handler_imu(_, data, df, state, service, sensor):
     z = d.get_float_32(14)
 
     # Adding data to dataframe for later saving
-    # df.loc[len(df)] = [timestamp, x, y, z]
+    df.loc[len(df)] = [timestamp, x, y, z]
 
     service.update_progress({"state": "measuring", "info": sensor + str(timestamp)
                                                            + ',' + sensor + str(x)
@@ -35,8 +35,8 @@ async def notification_handler_ecg(_, data, df, state, service):
         val.append(d.get_int_32(6 + 4 * i))
 
     # Adding data to dataframe for later saving
-    # for i in range(0, 16):
-    # df.loc[len(df)] = [timestamp, val[i]]
+    for i in range(0, 16):
+        df.loc[len(df)] = [timestamp, val[i]]
 
     info_string = "ecg" + str(timestamp)
     for i in range(0, samples):

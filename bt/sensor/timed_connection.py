@@ -2,10 +2,9 @@ import asyncio
 
 from bleak import BleakClient
 from rich import print
-from rich.progress import track
 
-from data.avaiable_sensors import options_dict
-from data.notification_handlers import notification_handler_ecg, notification_handler_imu
+from bt.sensor.supported.Movesense.avaiable_sensors import options_dict
+from bt.sensor.supported.Movesense.notification_handlers import notification_handler_ecg, notification_handler_imu
 
 from bluez_peripheral.advert import Advertisement
 

@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
 import time
 import sched
-# import pandas as pd
 import typer
 import asyncio
 from rich import print
 from typing_extensions import Annotated
 
-from bt.gateway.services.sensor_service import SensorService
-from bt.sensor.scan_sensor import scan_sensor
-from bt.sensor.timed_connection import timed_connection, launch_timed
-from bt.gateway.services.event_service import EventService
-from bt.gateway.services.connectivity_service import ConnectivityService
-from data.avaiable_sensors import sensor_options
+from bt.app.services.sensor_service import SensorService
+from bt.sensor.timed_connection import launch_timed
+from bt.app.services.event_service import EventService
+from bt.app.services.connectivity_service import ConnectivityService
+from bt.sensor.supported.Movesense.avaiable_sensors import sensor_options
 
 from bluez_peripheral.util import *
 from bluez_peripheral.advert import Advertisement
@@ -56,10 +54,6 @@ async def async_timed(duration, sensor):
         await asyncio.sleep(5)
         time_elapsed = time_elapsed + 5
 
-@typer_app.command()
-def debug():
-    print("nyong")
-    launch_timed("0C:8C:DC:39:F4:F0", 10.0, "acc", None, {"verbose": True})
 
 @typer_app.command()
 def startup():
@@ -108,7 +102,6 @@ async def async_startup():
     except KeyboardInterrupt:
         print("Exiting :wave:")
         raise
-
 
 
 if __name__ == '__main__':
