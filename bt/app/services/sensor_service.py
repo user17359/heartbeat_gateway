@@ -43,9 +43,10 @@ class SensorService(Service):
             self.sensors[mac]["client"],
             self
         )
-        self.sensors[mac]["df"].to_csv(self.sensors[mac]["label"] + '.csv', index=False)
+        label = self.sensors[mac]["label"].replace(" ", "_")
+        self.sensors[mac]["df"].to_csv(label + '.csv', index=False)
         # self.update_progress({"state": "empty", "info": ""})
-        print("Data saved to [blue]" + self.sensors[mac]["label"] + ".csv[blue] :floppy_disk:")
+        print("Data saved to [blue]" + label + ".csv[blue] :floppy_disk:")
 
     @characteristic("18c7e933-73cf-4d47-9973-51a53f0fec4e", CharFlags.WRITE_WITHOUT_RESPONSE)
     async def new_measurement(self, options):
