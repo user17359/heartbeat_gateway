@@ -102,9 +102,9 @@ class SensorService(Service):
                                             argument=(mac,))
 
         if units[0] == "ecg":
-            df = pd.DataFrame(columns=["timestamp", "x", "y", "z"])
-        else:
             df = pd.DataFrame(columns=["timestamp", "value"])
+        else:
+            df = pd.DataFrame(columns=["timestamp", "x", "y", "z"])
 
         self.sensors[mac]["df"] = df
 
