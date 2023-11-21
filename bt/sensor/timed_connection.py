@@ -8,12 +8,12 @@ from bluez_peripheral.advert import Advertisement
 from bt.sensor.supported.connection import Connection
 
 
-def launch_timed(connection_type, df, state, client, service, units):
+def launch_timed(connection_type: Connection, df, state, client, service, units):
     asyncio.create_task(timed_connection(connection_type, df, state, client, service, units))
 
 
-def launch_stop(client, service):
-    asyncio.create_task(stop_connection(client, service))
+def launch_stop(connection_type: Connection, client, service):
+    asyncio.create_task(stop_connection(connection_type, client, service))
 
 
 def launch_disconnect(client, service):
