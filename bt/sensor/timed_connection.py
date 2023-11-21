@@ -3,22 +3,13 @@ import asyncio
 from bleak import BleakClient
 from rich import print
 
-from bt.sensor.supported.Movesense.avaiable_sensors import options_dict
-from bt.sensor.supported.Movesense.notification_handlers import notification_handler_ecg, notification_handler_imu
-
 from bluez_peripheral.advert import Advertisement
 
-WRITE_CHARACTERISTIC_UUID = (
-    "34800001-7185-4d5d-b431-630e7050e8f0"
-)
-
-NOTIFY_CHARACTERISTIC_UUID = (
-    "34800002-7185-4d5d-b431-630e7050e8f0"
-)
+from bt.sensor.supported.connection import Connection
 
 
-def launch_timed(sensor, df, state, client, service):
-    asyncio.create_task(timed_connection(sensor, df, state, client, service))
+def launch_timed(connection_type, df, state, client, service, units):
+    asyncio.create_task(timed_connection(connection_type, df, state, client, service, units))
 
 
 def launch_stop(client, service):
@@ -43,31 +34,12 @@ async def start_connection(address, bus, adapter):
     return client
 
 
-async def timed_connection(sensor, df, state, client, service):
-    """Connecting to chosen sensor for a fixed amount of seconds"""
-    try:
-        # choosing handler appropriate to received data
-        if sensor == "ecg":
-            async def handler(_, data): await notification_handler_ecg(_, data, df, state, service)
-            await client.start_notify(NOTIFY_CHARACTERISTIC_UUID, handler)
-        else:
-            async def handler(_, data): await notification_handler_imu(_, data, df, state, service, sensor)
-            await client.start_notify(NOTIFY_CHARACTERISTIC_UUID, handler)
-
-        # sending message via GATT that we want to subscribe to chosen sensor
-        if state["verbose"]:
-            print("Subscribing datastream")
-        await client.write_gatt_char(WRITE_CHARACTERISTIC_UUID,
-                                     bytearray([1, 99]) + bytearray(options_dict[sensor], "utf-8"), response=True)
-    except Exception as e:
-        print('[red]' + repr(e) + '[red]')
+async def timed_connection(connection_type: Connection, df, state, client, service, units):
+    await connection_type.start_connection(df, state, client, service, units)
 
 
-async def stop_connection(client, service):
-    await client.write_gatt_char(WRITE_CHARACTERISTIC_UUID, bytearray([2, 99]), response=True)
-    print("Unsubscribing")
-    await client.stop_notify(NOTIFY_CHARACTERISTIC_UUID)
-    print("Stopping notifications")
+async def stop_connection(connection_type: Connection, client, service):
+    await connection_type.stop_connection(client)
     await disconnect_peripheral(client, service)
 
 

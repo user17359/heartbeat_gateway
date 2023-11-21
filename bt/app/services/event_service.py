@@ -14,6 +14,7 @@ class EventService(Service):
         # Base 16 service UUID, This should be a primary service.
         super().__init__("4f8ef7bf-fe20-437b-9320-89e6108c82e0", True)
 
+    # Characteristic called to add new event to diary
     @characteristic("27e571d9-53fa-4756-88da-07716d7ea633", CharFlags.WRITE_WITHOUT_RESPONSE)
     def new_entry(self, options):
         pass
