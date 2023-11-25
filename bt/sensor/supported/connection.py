@@ -1,4 +1,6 @@
 class Connection:
+    encoded_name = ""
+
     def get_df_header(self, unit):
         pass
 

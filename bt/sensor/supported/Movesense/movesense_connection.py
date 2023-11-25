@@ -13,6 +13,8 @@ NOTIFY_CHARACTERISTIC_UUID = (
 
 
 class MovesenseConnection(Connection):
+    encoded_name = "Movesense"
+
     def get_df_header(self, unit):
         if unit == "ecg":
             return pd.DataFrame(columns=["timestamp", "value"])
