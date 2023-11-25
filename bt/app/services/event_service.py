@@ -5,6 +5,7 @@ import json
 from rich import print
 
 from bt.app.data_classes.diary_entry import DiaryEntry
+from server.send_entry import send_entry
 
 
 class EventService(Service):
@@ -26,3 +27,4 @@ class EventService(Service):
         print("Registered entry :notebook:, label: " + entry.label \
               + " description: " + entry.description + " at time: " + str(entry.hour) + ":" + str(entry.minute))
         self.entry_list.append(entry)
+        send_entry(entry)
