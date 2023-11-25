@@ -46,6 +46,7 @@ class SensorService(Service):
     def end_measurement(self, mac):
         print("End of measurement for " + mac)
         launch_stop(
+            self.sensors[mac]["type"],
             self.sensors[mac]["client"],
             self
         )
