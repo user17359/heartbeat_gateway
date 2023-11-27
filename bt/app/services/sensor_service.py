@@ -57,7 +57,7 @@ class SensorService(Service):
         df = self.sensors[mac]["df"]
         df.to_csv(label + '.csv', index=False)
         print("Data saved to [blue]" + label + ".csv[blue] :floppy_disk:")
-        send_measurement(df, label, self.sensors["mac"]["type"].encoded_name)
+        send_measurement(df, label, self.sensors[mac]["type"].encoded_name)
 
     # Characteristic called to set up a new measurement at given time
     @characteristic("18c7e933-73cf-4d47-9973-51a53f0fec4e", CharFlags.WRITE_WITHOUT_RESPONSE)
