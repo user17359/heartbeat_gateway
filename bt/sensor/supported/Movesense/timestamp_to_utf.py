@@ -16,7 +16,7 @@ class TimestampConverter:
                 # * 1000 to account for timestamp being in milliseconds
                 self.start_utf_timestamp = now.timestamp() * 1000
                 self.start_movesense_timestamp = movesense_timestamp
-                return self.start_utf_timestamp
+                return int(self.start_utf_timestamp)
             else:
-                return self.start_utf_timestamp + (movesense_timestamp - self.start_utf_timestamp)
+                return int(self.start_utf_timestamp + (movesense_timestamp - self.start_movesense_timestamp))
 

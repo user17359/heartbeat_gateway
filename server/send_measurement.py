@@ -1,5 +1,7 @@
 import pandas as pd
+import numpy as np
 import requests
+import json
 from rich import print
 
 # API endpoint
@@ -19,7 +21,10 @@ def send_measurement(df: pd.DataFrame, label: str, sensor: str):
             if key == "timestamp":
                 time = row[key]
             else:
-                fields[key] = row[key]
+                if row[key].dtype == np.int64 or row[key].dtype == np.int32:
+                    fields[key] = int(row[key])
+                else:
+                    fields[key] = row[key]
 
         entry = {
             "measurement": label,
@@ -27,7 +32,7 @@ def send_measurement(df: pd.DataFrame, label: str, sensor: str):
                 "sensor": sensor
             },
             "fields": fields,
-            "time": time
+            "time": int(time)
         }
 
         payload.append(entry)

@@ -1,6 +1,5 @@
 from bt.sensor.supported.Movesense.avaiable_sensors import options_dict
-from bt.sensor.supported.Movesense.notification_handlers import notification_handler_ecg, notification_handler_imu, \
-    NotificationHandler
+from bt.sensor.supported.Movesense.notification_handlers import NotificationHandler
 from bt.sensor.supported.connection import Connection
 import pandas as pd
 
@@ -19,21 +18,21 @@ class MovesenseConnection(Connection):
 
     def get_df_header(self, unit):
         if unit == "ecg":
-            return pd.DataFrame(columns=["timestamp", "value"])
+            return ["timestamp", "value"]
         else:
-            return pd.DataFrame(columns=["timestamp", "x", "y", "z"])
+            return ["timestamp", "x", "y", "z"]
 
-    async def start_connection(self, df, state, client, service, units):
+    async def start_connection(self, data_storage, state, client, service, units):
         try:
             # choosing handler appropriate to received data
             if units[0] == "ecg":
                 async def handler(_, data):
-                    await self.notification_handler.notification_handler_ecg(_, data, df, state, service)
+                    await self.notification_handler.notification_handler_ecg(_, data, data_storage, state, service)
 
                 await client.start_notify(NOTIFY_CHARACTERISTIC_UUID, handler)
             else:
                 async def handler(_, data):
-                    await self.notification_handler.notification_handler_imu(_, data, df, state, service, units[0])
+                    await self.notification_handler.notification_handler_imu(_, data, data_storage, state, service, units[0])
 
                 await client.start_notify(NOTIFY_CHARACTERISTIC_UUID, handler)
 

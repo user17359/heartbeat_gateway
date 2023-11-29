@@ -38,7 +38,7 @@ class SensorService(Service):
         launch_timed(
             connection_type=self.sensors[mac]["type"],
             units=self.sensors[mac]["units"],
-            df=self.sensors[mac]["df"],
+            df=self.sensors[mac]["data_storage"],
             state={"verbose": True},
             client=self.sensors[mac]["client"],
             service=self)
@@ -54,7 +54,8 @@ class SensorService(Service):
 
         # Saving gathered data to .csv file
         label = self.sensors[mac]["label"].replace(" ", "_")
-        df = self.sensors[mac]["df"]
+        data = self.sensors[mac]["data_storage"]
+        df = pd.DataFrame(data, columns = self.sensors[mac]["type"].get_df_header(self.sensors[mac]["units"][0]))
         df.to_csv(label + '.csv', index=False)
         print("Data saved to [blue]" + label + ".csv[blue] :floppy_disk:")
         send_measurement(df, label, self.sensors[mac]["type"].encoded_name)
@@ -96,7 +97,7 @@ class SensorService(Service):
                              "type": connection_type,
                              "start_event": None,
                              "end_event": None,
-                             "df": None,
+                             "data_storage": None,
                              "client": None,
                              "units": units,
                              "label": data['label'],
@@ -118,9 +119,9 @@ class SensorService(Service):
 
         # Choosing appropriate dataframe headers
         # TODO: more than one connection
-        df = connection_type.get_df_header(units[0])
+        data_storage = []
 
-        self.sensors[mac]["df"] = df
+        self.sensors[mac]["data_storage"] = data_storage
 
         self.sensors[mac]["start_event"] = start_event
         self.sensors[mac]["end_event"] = end_event
@@ -131,7 +132,7 @@ class SensorService(Service):
         pass
 
     def update_progress(self, state):
-        print("Updating progress")
+        print("Updating progress to state: " + state["state"])
         json_string = json.dumps(state)
         self.sensors[self.current_mac]["state"] = state["state"]
         data = bytes(json_string, "utf-8")
@@ -151,9 +152,10 @@ class SensorService(Service):
     # Characteristic called to get current measurement state (empty/scheduled/measuring)
     @characteristic("e946c454-6083-44d1-a726-076cecfc3744", CharFlags.READ)
     def measurement_info(self, options):
+        print("Sending [bold green]measurement info[/bold green]")
         if self.current_mac in self.sensors:
             start_time = self.sensors[self.current_mac]["run_at"]
-
+            print("MAC is set")
             info = {
                 "state": self.sensors[self.current_mac]["state"],
                 "label": self.sensors[self.current_mac]["label"],
@@ -161,14 +163,17 @@ class SensorService(Service):
                 "units": self.sensors[self.current_mac]["units"]
             }
         else:
+            print("MAC is not set")
             info = {
                 "state": "empty",
                 "label": "",
                 "startTime": "",
                 "units": []
             }
+        print("dumping to JSON")
         json_list = json.dumps(info)
         data = bytes(json_list, "utf-8")
+        print("sending callback")
         return data
 
     # Characteristic called when user forces stopping measurement
