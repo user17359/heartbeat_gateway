@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from gpiozero import LED
+from gpiozero import Button
 import time
 import sched
 import typer
@@ -18,6 +20,10 @@ from bluez_peripheral.agent import NoIoAgent
 from bluez_peripheral.gatt.service import ServiceCollection
 
 typer_app = typer.Typer()
+
+bt_led = LED(17)
+wifi_led = LED(27)
+button = Button(22)
 
 state = {"verbose": False}
 
@@ -55,15 +61,13 @@ async def async_timed(duration, sensor):
         time_elapsed = time_elapsed + 5
 
 
-@typer_app.command()
-def startup():
-    asyncio.run(async_startup())
+def setup_connection(scheduler):
+    asyncio.create_task(setup_connection_async(scheduler))
 
 
-async def async_startup():
+async def setup_connection_async(scheduler):
     bus = await get_message_bus()
     adapter = await Adapter.get_first(bus)
-    scheduler = sched.scheduler(time.time, time.sleep)
 
     service_collection = ServiceCollection()
 
@@ -86,8 +90,21 @@ async def async_startup():
     print("Start of advertisement :loudspeaker:")
     advert = Advertisement("Heartbeat 2809", ["180D"], 0x008D, adv_time)
     await advert.register(bus, adapter)
-    time_elapsed = 0
 
+
+@typer_app.command()
+def startup():
+    asyncio.run(async_startup())
+
+
+async def async_startup():
+    scheduler = sched.scheduler(time.time, time.sleep)
+
+    bt_led.blink()
+    wifi_led.blink()
+    button.when_released = lambda: setup_connection(scheduler)
+
+    time_elapsed = 0
     try:
         while True:
             # Update the heart rate.
@@ -97,8 +114,6 @@ async def async_startup():
             # Handle dbus requests.
             await asyncio.sleep(5)
             time_elapsed = time_elapsed + 5
-            if time_elapsed == adv_time:
-                print("End of advertisement :no_entry_sign:")
     except KeyboardInterrupt:
         print("Exiting :wave:")
         raise
