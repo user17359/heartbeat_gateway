@@ -3,9 +3,15 @@ import numpy as np
 import requests
 import json
 from rich import print
+import os
 
+dirname = os.path.dirname(__file__)
+filename = os.path.join(dirname, 'token.txt')
+f = open(filename, "r")
+post_token = f.read()
+f.close()
 # API endpoint
-url = "http://192.168.111.250:5000/new_measurement"
+url = "http://192.168.111.250:5000/new_measurement?token=" + post_token
 
 
 def send_measurement(df: pd.DataFrame, label: str, sensor: str):

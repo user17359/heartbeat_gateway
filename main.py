@@ -27,6 +27,8 @@ button = Button(22)
 
 state = {"verbose": False}
 
+is_advertisement_running = False
+
 
 def bad_sensor_callback(value: str):
     if value not in sensor_options:
@@ -61,11 +63,31 @@ async def async_timed(duration, sensor):
         time_elapsed = time_elapsed + 5
 
 
-def setup_connection(scheduler):
-    asyncio.create_task(setup_connection_async(scheduler))
+def setup_connection(bus, adapter):
+    global is_advertisement_running
+    if not is_advertisement_running:
+        is_advertisement_running = True
+        asyncio.run(setup_connection_async(bus, adapter))
+    else:
+        print("Advertisement already running!")
 
 
-async def setup_connection_async(scheduler):
+async def setup_connection_async(bus, adapter):
+    adv_time = 60
+    print("Start of advertisement :loudspeaker:")
+    advert = Advertisement("Heartbeat 2809", ["180D"], 0x008D, adv_time)
+    await advert.register(bus, adapter)
+
+
+@typer_app.command()
+def startup():
+    asyncio.run(async_startup())
+
+
+async def async_startup():
+    asyncio.get_event_loop()
+
+    scheduler = sched.scheduler(time.time, time.sleep)
     bus = await get_message_bus()
     adapter = await Adapter.get_first(bus)
 
@@ -85,24 +107,13 @@ async def setup_connection_async(scheduler):
     agent = NoIoAgent()
     await agent.register(bus)
 
-    adv_time = 60
+    bt_led.on()
+    wifi_led.on()
+    button.when_released = lambda: setup_connection(bus, adapter)
 
-    print("Start of advertisement :loudspeaker:")
-    advert = Advertisement("Heartbeat 2809", ["180D"], 0x008D, adv_time)
-    await advert.register(bus, adapter)
-
-
-@typer_app.command()
-def startup():
-    asyncio.run(async_startup())
-
-
-async def async_startup():
-    scheduler = sched.scheduler(time.time, time.sleep)
-
-    bt_led.blink()
-    wifi_led.blink()
-    button.when_released = lambda: setup_connection(scheduler)
+    await asyncio.sleep(0.5)
+    bt_led.off()
+    wifi_led.off()
 
     time_elapsed = 0
     try:
