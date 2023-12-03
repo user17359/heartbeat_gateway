@@ -1,5 +1,7 @@
 import pandas as pd
 from datetime import datetime
+
+from gpiozero import LED
 from rich import print
 
 from bluez_peripheral.gatt.service import Service
@@ -12,6 +14,7 @@ from bt.sensor.supported.connections_dict import possible_connections
 from bt.sensor.timed_connection import launch_timed, start_connection, launch_stop, launch_disconnect
 from server.send_measurement import send_measurement
 
+bt_led = LED(17)
 
 class SensorService(Service):
     sensors = {}
@@ -34,6 +37,7 @@ class SensorService(Service):
     # Function called on time set as start of measurement
     def start_measurement(self, mac):
         print("Measuring for " + mac + "...")
+        bt_led.on()
 
         launch_timed(
             connection_type=self.sensors[mac]["type"],
@@ -46,6 +50,8 @@ class SensorService(Service):
     # Function called on time set as end of measurement
     def end_measurement(self, mac):
         print("End of measurement for " + mac)
+        bt_led.off()
+
         launch_stop(
             self.sensors[mac]["type"],
             self.sensors[mac]["client"],

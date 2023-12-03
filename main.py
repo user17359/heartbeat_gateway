@@ -63,10 +63,18 @@ async def async_timed(duration, sensor):
         time_elapsed = time_elapsed + 5
 
 
-def setup_connection(bus, adapter):
+def advertisement_end():
+    global is_advertisement_running
+    is_advertisement_running = False
+    bt_led.off()
+
+
+def setup_connection(bus, adapter, scheduler):
     global is_advertisement_running
     if not is_advertisement_running:
+        bt_led.blink()
         is_advertisement_running = True
+        scheduler.enter(delay=60, priority=1, action=advertisement_end)
         asyncio.run(setup_connection_async(bus, adapter))
     else:
         print("Advertisement already running!")
@@ -109,7 +117,7 @@ async def async_startup():
 
     bt_led.on()
     wifi_led.on()
-    button.when_released = lambda: setup_connection(bus, adapter)
+    button.when_released = lambda: setup_connection(bus, adapter, scheduler)
 
     await asyncio.sleep(0.5)
     bt_led.off()

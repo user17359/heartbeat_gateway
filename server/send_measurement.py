@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 import requests
-import json
 from rich import print
+from gpiozero import LED
 import os
 
 dirname = os.path.dirname(__file__)
@@ -13,9 +13,13 @@ f.close()
 # API endpoint
 url = "http://192.168.111.250:5000/new_measurement?token=" + post_token
 
+# I/O
+wifi_led = LED(27)
+
 
 def send_measurement(df: pd.DataFrame, label: str, sensor: str):
 
+    wifi_led.blink()
     payload = []
 
     for index, row in df.iterrows():
@@ -45,3 +49,4 @@ def send_measurement(df: pd.DataFrame, label: str, sensor: str):
 
     response = requests.post(url, json=payload)
     print("Response", response.status_code)
+    wifi_led.off()
