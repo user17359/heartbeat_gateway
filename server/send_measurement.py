@@ -13,11 +13,8 @@ f.close()
 # API endpoint
 url = "http://192.168.111.250:5000/new_measurement?token=" + post_token
 
-# I/O
-wifi_led = LED(27)
 
-
-def send_measurement(df: pd.DataFrame, label: str, sensor: str):
+def send_measurement(df: pd.DataFrame, label: str, sensor: str, wifi_led: LED):
 
     wifi_led.blink()
     payload = []

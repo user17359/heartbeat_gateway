@@ -14,18 +14,18 @@ from bt.sensor.supported.connections_dict import possible_connections
 from bt.sensor.timed_connection import launch_timed, start_connection, launch_stop, launch_disconnect
 from server.send_measurement import send_measurement
 
-bt_led = LED(17)
-
 class SensorService(Service):
     sensors = {}
     current_mac = ""
 
-    def __init__(self, scheduler, bus, adapter):
+    def __init__(self, scheduler, bus, adapter, leds):
         # Base 16 service UUID, This should be a primary service.
         super().__init__("a56f5e06-fd24-4ffe-906f-f82e916262bc", True)
         self.scheduler = scheduler
         self.bus = bus
         self.adapter = adapter
+        self.bt_led = leds[0]
+        self.wifi_led = leds[1]
 
     # Function called to create connection with sensor
     async def start_connection(self, mac):
@@ -37,7 +37,7 @@ class SensorService(Service):
     # Function called on time set as start of measurement
     def start_measurement(self, mac):
         print("Measuring for " + mac + "...")
-        bt_led.on()
+        self.bt_led.on()
 
         launch_timed(
             connection_type=self.sensors[mac]["type"],
@@ -50,7 +50,7 @@ class SensorService(Service):
     # Function called on time set as end of measurement
     def end_measurement(self, mac):
         print("End of measurement for " + mac)
-        bt_led.off()
+        self.bt_led.off()
 
         launch_stop(
             self.sensors[mac]["type"],
@@ -64,7 +64,7 @@ class SensorService(Service):
         df = pd.DataFrame(data, columns = self.sensors[mac]["type"].get_df_header(self.sensors[mac]["units"][0]))
         df.to_csv(label + '.csv', index=False)
         print("Data saved to [blue]" + label + ".csv[blue] :floppy_disk:")
-        send_measurement(df, label, self.sensors[mac]["type"].encoded_name)
+        send_measurement(df, label, self.sensors[mac]["type"].encoded_name, self.wifi_led)
 
     # Characteristic called to set up a new measurement at given time
     @characteristic("18c7e933-73cf-4d47-9973-51a53f0fec4e", CharFlags.WRITE_WITHOUT_RESPONSE)

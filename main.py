@@ -107,7 +107,7 @@ async def async_startup():
     connectivity_service = ConnectivityService()
     service_collection.add_service(connectivity_service)
 
-    sensor_service = SensorService(scheduler, bus, adapter)
+    sensor_service = SensorService(scheduler, bus, adapter, (bt_led, wifi_led))
     service_collection.add_service(sensor_service)
 
     await service_collection.register(bus)
