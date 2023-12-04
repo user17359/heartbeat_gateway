@@ -1,5 +1,5 @@
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from gpiozero import LED
 from rich import print
@@ -86,17 +86,23 @@ class SensorService(Service):
 
         connection_type: Connection = possible_connections[data["type"]]
 
-        # TODO: next day support
         run_at = datetime(now.year,
                           now.month,
                           now.day,
                           data["startHour"],
                           data["startMinute"])
+
+        if data["nextDayStart"]:
+            run_at += timedelta(days=1)
+
         end_at = datetime(now.year,
                           now.month,
                           now.day,
                           data["endHour"],
                           data["endMinute"])
+
+        if data["nextDayEnd"]:
+            end_at += timedelta(days=1)
 
         self.sensors[mac] = {"run_at": run_at,
                              "end_at": end_at,
