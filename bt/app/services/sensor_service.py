@@ -61,7 +61,7 @@ class SensorService(Service):
         # Saving gathered data to .csv file
         label = self.sensors[mac]["label"].replace(" ", "_")
         data = self.sensors[mac]["data_storage"]
-        df = pd.DataFrame(data, columns = self.sensors[mac]["type"].get_df_header(self.sensors[mac]["units"][0]))
+        df = pd.DataFrame(data, columns = self.sensors[mac]["type"].get_df_header(self.sensors[mac]["units"][0]["name"]))
         df.to_csv(label + '.csv', index=False)
         print("Data saved to [blue]" + label + ".csv[blue] :floppy_disk:")
         send_measurement(df, label, self.sensors[mac]["type"].encoded_name, self.wifi_led)
@@ -80,9 +80,7 @@ class SensorService(Service):
         mac = data["mac"]
         self.current_mac = mac
 
-        units = []
-        for unit in data["sensors"]:
-            units.append(unit["name"])
+        units = data["sensors"]
 
         connection_type: Connection = possible_connections[data["type"]]
 

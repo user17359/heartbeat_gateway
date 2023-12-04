@@ -25,14 +25,14 @@ class MovesenseConnection(Connection):
     async def start_connection(self, data_storage, state, client, service, units):
         try:
             # choosing handler appropriate to received data
-            if units[0] == "ecg":
+            if units[0]["name"] == "ecg":
                 async def handler(_, data):
                     await self.notification_handler.notification_handler_ecg(_, data, data_storage, state, service)
 
                 await client.start_notify(NOTIFY_CHARACTERISTIC_UUID, handler)
             else:
                 async def handler(_, data):
-                    await self.notification_handler.notification_handler_imu(_, data, data_storage, state, service, units[0])
+                    await self.notification_handler.notification_handler_imu(_, data, data_storage, state, service, units[0]["name"])
 
                 await client.start_notify(NOTIFY_CHARACTERISTIC_UUID, handler)
 
@@ -40,7 +40,8 @@ class MovesenseConnection(Connection):
             if state["verbose"]:
                 print("Subscribing datastream")
             await client.write_gatt_char(WRITE_CHARACTERISTIC_UUID,
-                                         bytearray([1, 99]) + bytearray(options_dict[units[0]], "utf-8"), response=True)
+                                         bytearray([1, 99]) + bytearray(options_dict[units[0]["name"]], "utf-8")
+                                         + bytearray(options_dict[units[0]["probing"]], "utf-8"), response=True)
         except Exception as e:
             print('[red]' + repr(e) + '[red]')
 
