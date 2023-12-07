@@ -185,4 +185,4 @@ fabric.properties
 .idea
 
 # file storing uuid
-uuid.txt
+server/uuid.txt

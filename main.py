@@ -19,7 +19,8 @@ from bluez_peripheral.util import *
 from bluez_peripheral.agent import NoIoAgent
 from bluez_peripheral.gatt.service import ServiceCollection
 
-from io.advertiser import Advertiser
+from utils.advertiser import Advertiser
+from server.address import server_address
 
 typer_app = typer.Typer()
 
@@ -30,8 +31,6 @@ button = Button(22)
 state = {"verbose": False}
 
 is_advertisement_running = False
-
-server_address = '192.168.111.250'
 
 
 def bad_sensor_callback(value: str):
