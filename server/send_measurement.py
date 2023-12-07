@@ -4,6 +4,7 @@ import requests
 from rich import print
 from gpiozero import LED
 import os
+import socket
 
 dirname = os.path.dirname(__file__)
 filename = os.path.join(dirname, 'token.txt')
@@ -16,34 +17,40 @@ url = "http://192.168.111.250:5000/new_measurement?token=" + post_token
 
 def send_measurement(df: pd.DataFrame, label: str, sensor: str, wifi_led: LED):
 
-    wifi_led.blink()
-    payload = []
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    result = sock.connect_ex(('192.168.111.250', 5000))
 
-    for index, row in df.iterrows():
+    if result == 0:
+        wifi_led.blink()
+        payload = []
 
-        time = 0
-        fields = {}
+        for index, row in df.iterrows():
 
-        for key in row.keys():
-            if key == "timestamp":
-                time = row[key]
-            else:
-                if row[key].dtype == np.int64 or row[key].dtype == np.int32:
-                    fields[key] = int(row[key])
+            time = 0
+            fields = {}
+
+            for key in row.keys():
+                if key == "timestamp":
+                    time = row[key]
                 else:
-                    fields[key] = row[key]
+                    if row[key].dtype == np.int64 or row[key].dtype == np.int32:
+                        fields[key] = int(row[key])
+                    else:
+                        fields[key] = row[key]
 
-        entry = {
-            "measurement": label,
-            "tags": {
-                "sensor": sensor
-            },
-            "fields": fields,
-            "time": int(time)
-        }
+            entry = {
+                "measurement": label,
+                "tags": {
+                    "sensor": sensor
+                },
+                "fields": fields,
+                "time": int(time)
+            }
 
-        payload.append(entry)
+            payload.append(entry)
 
-    response = requests.post(url, json=payload)
-    print("Response", response.status_code)
-    wifi_led.off()
+        response = requests.post(url, json=payload)
+        print("Response", response.status_code)
+        wifi_led.off()
+    else:
+        print("Server can't be reached")

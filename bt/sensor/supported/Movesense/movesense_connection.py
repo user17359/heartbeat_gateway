@@ -3,6 +3,8 @@ from bt.sensor.supported.Movesense.notification_handlers import NotificationHand
 from bt.sensor.supported.connection import Connection
 import pandas as pd
 
+from rich import print
+
 WRITE_CHARACTERISTIC_UUID = (
     "34800001-7185-4d5d-b431-630e7050e8f0"
 )
@@ -41,7 +43,7 @@ class MovesenseConnection(Connection):
                 print("Subscribing datastream")
             await client.write_gatt_char(WRITE_CHARACTERISTIC_UUID,
                                          bytearray([1, 99]) + bytearray(options_dict[units[0]["name"]], "utf-8")
-                                         + bytearray(options_dict[units[0]["probing"]], "utf-8"), response=True)
+                                         + bytearray(units[0]["probing"], "utf-8"), response=True)
         except Exception as e:
             print('[red]' + repr(e) + '[red]')
 

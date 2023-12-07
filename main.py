@@ -2,6 +2,7 @@
 from gpiozero import LED
 from gpiozero import Button
 import time
+import socket
 import sched
 import typer
 import asyncio
@@ -63,18 +64,25 @@ async def async_timed(duration, sensor):
         time_elapsed = time_elapsed + 5
 
 
-def advertisement_end():
+def advertisement_end(saved_status):
     global is_advertisement_running
     is_advertisement_running = False
-    bt_led.off()
+    if bt_led.value == 1:
+        pass
+    if saved_status == 1:
+        bt_led.on()
+    else:
+        bt_led.off()
 
 
 def setup_connection(bus, adapter, scheduler):
     global is_advertisement_running
     if not is_advertisement_running:
+        status = bt_led.value
+
         bt_led.blink()
         is_advertisement_running = True
-        scheduler.enter(delay=60, priority=1, action=advertisement_end)
+        scheduler.enter(delay=60, priority=1, action=advertisement_end, argument=(status,))
         asyncio.run(setup_connection_async(bus, adapter))
     else:
         print("Advertisement already running!")
@@ -133,6 +141,16 @@ async def async_startup():
             # Handle dbus requests.
             await asyncio.sleep(5)
             time_elapsed = time_elapsed + 5
+            # Check for connection with server
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            result = sock.connect_ex(('192.168.111.250', 5000))
+            if result == 0:
+                wifi_led.on()
+                print("Port is open")
+            else:
+                wifi_led.off()
+                print("Port is not open")
+
     except KeyboardInterrupt:
         print("Exiting :wave:")
         raise
