@@ -16,9 +16,10 @@ from bt.app.services.connectivity_service import ConnectivityService
 from bt.sensor.supported.Movesense.avaiable_sensors import sensor_options
 
 from bluez_peripheral.util import *
-from bluez_peripheral.advert import Advertisement
 from bluez_peripheral.agent import NoIoAgent
 from bluez_peripheral.gatt.service import ServiceCollection
+
+from io.advertiser import Advertiser
 
 typer_app = typer.Typer()
 
@@ -29,6 +30,8 @@ button = Button(22)
 state = {"verbose": False}
 
 is_advertisement_running = False
+
+server_address = '192.168.111.250'
 
 
 def bad_sensor_callback(value: str):
@@ -64,37 +67,6 @@ async def async_timed(duration, sensor):
         time_elapsed = time_elapsed + 5
 
 
-def advertisement_end(saved_status):
-    global is_advertisement_running
-    is_advertisement_running = False
-    if bt_led.value == 1:
-        pass
-    if saved_status == 1:
-        bt_led.on()
-    else:
-        bt_led.off()
-
-
-def setup_connection(bus, adapter, scheduler):
-    global is_advertisement_running
-    if not is_advertisement_running:
-        status = bt_led.value
-
-        bt_led.blink()
-        is_advertisement_running = True
-        scheduler.enter(delay=60, priority=1, action=advertisement_end, argument=(status,))
-        asyncio.run(setup_connection_async(bus, adapter))
-    else:
-        print("Advertisement already running!")
-
-
-async def setup_connection_async(bus, adapter):
-    adv_time = 60
-    print("Start of advertisement :loudspeaker:")
-    advert = Advertisement("Heartbeat 2809", ["180D"], 0x008D, adv_time)
-    await advert.register(bus, adapter)
-
-
 @typer_app.command()
 def startup():
     asyncio.run(async_startup())
@@ -106,6 +78,8 @@ async def async_startup():
     scheduler = sched.scheduler(time.time, time.sleep)
     bus = await get_message_bus()
     adapter = await Adapter.get_first(bus)
+
+    advertiser = Advertiser(bt_led, bus, adapter, scheduler)
 
     service_collection = ServiceCollection()
 
@@ -125,7 +99,7 @@ async def async_startup():
 
     bt_led.on()
     wifi_led.on()
-    button.when_released = lambda: setup_connection(bus, adapter, scheduler)
+    button.when_released = advertiser.setup_connection
 
     await asyncio.sleep(0.5)
     bt_led.off()
@@ -134,22 +108,20 @@ async def async_startup():
     time_elapsed = 0
     try:
         while True:
-            # Update the heart rate.
-            print("Current seconds " + str(time_elapsed))
             # Check if any scheduled event is due
             scheduler.run(False)
-            # Handle dbus requests.
-            await asyncio.sleep(5)
-            time_elapsed = time_elapsed + 5
             # Check for connection with server
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            result = sock.connect_ex(('192.168.111.250', 5000))
+            result = sock.connect_ex((server_address, 5000))
             if result == 0:
                 wifi_led.on()
-                print("Port is open")
+                print("Port is [bold green]open[/bold green]")
             else:
                 wifi_led.off()
-                print("Port is not open")
+                print("Port is not [bold red]open[/bold red]")
+            # Wait for 5 seconds
+            await asyncio.sleep(5)
+            time_elapsed = time_elapsed + 5
 
     except KeyboardInterrupt:
         print("Exiting :wave:")

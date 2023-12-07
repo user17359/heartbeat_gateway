@@ -6,6 +6,8 @@ from gpiozero import LED
 import os
 import socket
 
+from main import server_address
+
 dirname = os.path.dirname(__file__)
 filename = os.path.join(dirname, 'token.txt')
 f = open(filename, "r")
@@ -14,11 +16,10 @@ f.close()
 # API endpoint
 url = "http://192.168.111.250:5000/new_measurement?token=" + post_token
 
-
 def send_measurement(df: pd.DataFrame, label: str, sensor: str, wifi_led: LED):
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    result = sock.connect_ex(('192.168.111.250', 5000))
+    result = sock.connect_ex((server_address, 5000))
 
     if result == 0:
         wifi_led.blink()
@@ -50,7 +51,8 @@ def send_measurement(df: pd.DataFrame, label: str, sensor: str, wifi_led: LED):
             payload.append(entry)
 
         response = requests.post(url, json=payload)
-        print("Response", response.status_code)
+        print("Response [blue]" + str(response.status_code) + "[/blue]")
+
         wifi_led.off()
     else:
-        print("Server can't be reached")
+        print("[red]Server can't be reached[/red]")

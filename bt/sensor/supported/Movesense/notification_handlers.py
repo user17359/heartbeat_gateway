@@ -1,7 +1,7 @@
 from bt.sensor.supported.Movesense.timestamp_to_utf import TimestampConverter
 from bt.sensor.utils.data_view import DataView
 
-import asyncio
+from rich import print
 
 
 class NotificationHandler:
@@ -27,7 +27,7 @@ class NotificationHandler:
                                                                + ',' + sensor + str(z)})
 
         if state["verbose"]:
-            msg = "timestamp: {}, x: {}, y: {}, z: {}".format(converted_timestamp, x, y, z)
+            msg = "timestamp: [bright_cyan]{}[/bright_cyan], x: [blue]{}[/blue], y: [blue]{}[/blue], z: [blue]{}[/blue]".format(converted_timestamp, x, y, z)
             print(msg)
 
     async def notification_handler_ecg(self, _, data, data_storage, state, service):
@@ -42,13 +42,13 @@ class NotificationHandler:
         timestamp = d.get_uint_32(2)
         converted_timestamp = self.timestamp_converter.convert_timestamp(timestamp)
 
-        info_string = "ecg" + str(converted_timestamp)
+        info_string = "ecg [bright_cyan]" + str(converted_timestamp) + '[/bright_cyan]'
 
         for i in range(0, samples):
             val.append(d.get_int_32(6 + 4 * i))
             # Adding data to dataframe for later saving
             data_storage.append([converted_timestamp + (diff * i), val[i]])
-            info_string += ',ecg' + str(val[i])
+            info_string += ',ecg [blue]' + str(val[i]) + '[/blue]'
 
         service.update_progress({"state": "measuring", "info": info_string})
 

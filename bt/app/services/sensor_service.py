@@ -1,7 +1,6 @@
 import pandas as pd
 from datetime import datetime, timedelta
 
-from gpiozero import LED
 from rich import print
 
 from bluez_peripheral.gatt.service import Service
@@ -180,10 +179,8 @@ class SensorService(Service):
                 "startTime": "",
                 "units": []
             }
-        print("dumping to JSON")
         json_list = json.dumps(info)
         data = bytes(json_list, "utf-8")
-        print("sending callback")
         return data
 
     # Characteristic called when user forces stopping measurement
