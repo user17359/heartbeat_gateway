@@ -4,5 +4,6 @@ options_dict = {
     "acc": "/Meas/Acc/",
     "gyro": "/Meas/Gyro/",
     "mag": "/Meas/Magn/",
-    "ecg": "/Meas/ECG/"
+    "ecg": "/Meas/ECG/",
+    "hr": "/Meas/HR"
 }

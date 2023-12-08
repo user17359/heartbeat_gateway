@@ -21,6 +21,8 @@ class MovesenseConnection(Connection):
     def get_df_header(self, unit):
         if unit == "ecg":
             return ["timestamp", "value"]
+        elif unit == "hr":
+            return ["timestamp", "hr", "rr"]
         else:
             return ["timestamp", "x", "y", "z"]
 
@@ -32,6 +34,11 @@ class MovesenseConnection(Connection):
                     await self.notification_handler.notification_handler_ecg(_, data, data_storage, state, service)
 
                 await client.start_notify(NOTIFY_CHARACTERISTIC_UUID, handler)
+            elif units[0]["name"] == "hr":
+                async def handler(_, data):
+                    await self.notification_handler.notification_handler_hr(_, data, data_storage, state, service)
+
+                await client.start_notify(NOTIFY_CHARACTERISTIC_UUID, handler)
             else:
                 async def handler(_, data):
                     await self.notification_handler.notification_handler_imu(_, data, data_storage, state, service, units[0]["name"])
@@ -41,9 +48,14 @@ class MovesenseConnection(Connection):
             # sending message via GATT that we want to subscribe to chosen sensor
             if state["verbose"]:
                 print("Subscribing datastream")
-            await client.write_gatt_char(WRITE_CHARACTERISTIC_UUID,
-                                         bytearray([1, 99]) + bytearray(options_dict[units[0]["name"]], "utf-8")
-                                         + bytearray(units[0]["probing"], "utf-8"), response=True)
+            if "probing" in units[0]:
+                await client.write_gatt_char(WRITE_CHARACTERISTIC_UUID,
+                                             bytearray([1, 99]) + bytearray(options_dict[units[0]["name"]], "utf-8")
+                                             + bytearray(units[0]["probing"], "utf-8"), response=True)
+            else:
+                await client.write_gatt_char(WRITE_CHARACTERISTIC_UUID,
+                                             bytearray([1, 99]) + bytearray(options_dict[units[0]["name"]], "utf-8")
+                                             , response=True)
         except Exception as e:
             print('[red]' + repr(e) + '[red]')
 

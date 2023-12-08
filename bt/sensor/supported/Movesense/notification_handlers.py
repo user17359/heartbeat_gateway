@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from bt.sensor.supported.Movesense.timestamp_to_utf import TimestampConverter
 from bt.sensor.utils.data_view import DataView
 
@@ -27,7 +29,8 @@ class NotificationHandler:
                                                                + ',' + sensor + str(z)})
 
         if state["verbose"]:
-            msg = "timestamp: [bright_cyan]{}[/bright_cyan], x: [blue]{}[/blue], y: [blue]{}[/blue], z: [blue]{}[/blue]".format(converted_timestamp, x, y, z)
+            msg = ("timestamp: [bright_cyan]{}[/bright_cyan], x: [blue]{}[/blue], y: [blue]{}[/blue], z: [blue]{}[/blue]"
+                   .format(converted_timestamp, x, y, z))
             print(msg)
 
     async def notification_handler_ecg(self, _, data, data_storage, state, service):
@@ -42,16 +45,36 @@ class NotificationHandler:
         timestamp = d.get_uint_32(2)
         converted_timestamp = self.timestamp_converter.convert_timestamp(timestamp)
 
-        info_string = "ecg [bright_cyan]" + str(converted_timestamp) + '[/bright_cyan]'
+        info_string = "ecg" + str(converted_timestamp)
 
         for i in range(0, samples):
             val.append(d.get_int_32(6 + 4 * i))
             # Adding data to dataframe for later saving
             data_storage.append([converted_timestamp + (diff * i), val[i]])
-            info_string += ',ecg [blue]' + str(val[i]) + '[/blue]'
+            info_string += ',ecg' + str(val[i])
 
         service.update_progress({"state": "measuring", "info": info_string})
 
         if state["verbose"]:
-            msg = "timestamp: {}, val: {}".format(converted_timestamp, val)
+            msg = "timestamp: [bright_cyan]{}[/bright_cyan], val: [blue]{}[/blue]".format(converted_timestamp, val)
+            print(msg)
+
+    async def notification_handler_hr(self, _, data, data_storage, state, service):
+        """Simple notification handler for heartrate"""
+        d = DataView(data)
+
+        # Dig data from the binary
+        hr = d.get_float_32(2)
+        rr = d.get_uint_16(6)
+
+        timestamp = datetime.now().timestamp() * 1000
+
+        service.update_progress({"state": "measuring", "info": "hr" + str(timestamp)
+                                                               + ',' + "hr" + str(hr)
+                                                               + ',' + "hr" + str(rr)})
+
+        data_storage.append([timestamp, hr, rr])
+
+        if state["verbose"]:
+            msg = "timestamp: [bright_cyan]{}[/bright_cyan], hr: [blue]{}[/blue], rr: [blue]{}[/blue]".format(timestamp, hr, rr)
             print(msg)
