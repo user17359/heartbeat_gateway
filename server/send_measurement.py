@@ -6,7 +6,7 @@ from gpiozero import LED
 import os
 import socket
 
-from main import server_address
+from server.address import server_address
 
 dirname = os.path.dirname(__file__)
 filename = os.path.join(dirname, 'token.txt')

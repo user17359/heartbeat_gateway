@@ -5,7 +5,7 @@ from rich import print
 import socket
 
 from bt.app.data_classes.diary_entry import DiaryEntry
-from main import server_address
+from server.address import server_address
 
 # API endpoint
 url = 'http://192.168.111.250:5000/new_entry'

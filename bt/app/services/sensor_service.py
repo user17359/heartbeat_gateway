@@ -141,7 +141,6 @@ class SensorService(Service):
         pass
 
     def update_progress(self, state):
-        print("Updating progress to state: " + state["state"])
         json_string = json.dumps(state)
         self.sensors[self.current_mac]["state"] = state["state"]
         data = bytes(json_string, "utf-8")
