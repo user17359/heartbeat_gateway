@@ -20,6 +20,9 @@ class DataView:
         else:
             return b'ff\xe6?'
 
+    def get_length(self):
+        return len(self.array)
+
     def get_uint_16(self, start_index):
         bytes_to_read = 2
         return int.from_bytes(self.__get_binary(start_index, bytes_to_read), byteorder='little')

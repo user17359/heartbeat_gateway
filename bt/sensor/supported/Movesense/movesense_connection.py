@@ -29,21 +29,10 @@ class MovesenseConnection(Connection):
     async def start_connection(self, data_storage, state, client, service, units):
         try:
             # choosing handler appropriate to received data
-            if units[0]["name"] == "ecg":
-                async def handler(_, data):
-                    await self.notification_handler.notification_handler_ecg(_, data, data_storage, state, service)
+            async def handler(_, data):
+                await self.notification_handler.notification_handler_picker(_, data, data_storage, state, service, units[0]["name"])
 
-                await client.start_notify(NOTIFY_CHARACTERISTIC_UUID, handler)
-            elif units[0]["name"] == "hr":
-                async def handler(_, data):
-                    await self.notification_handler.notification_handler_hr(_, data, data_storage, state, service)
-
-                await client.start_notify(NOTIFY_CHARACTERISTIC_UUID, handler)
-            else:
-                async def handler(_, data):
-                    await self.notification_handler.notification_handler_imu(_, data, data_storage, state, service, units[0]["name"])
-
-                await client.start_notify(NOTIFY_CHARACTERISTIC_UUID, handler)
+            await client.start_notify(NOTIFY_CHARACTERISTIC_UUID, handler)
 
             # sending message via GATT that we want to subscribe to chosen sensor
             if state["verbose"]:
