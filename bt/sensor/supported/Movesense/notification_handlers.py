@@ -9,7 +9,8 @@ from rich import print
 class NotificationHandler:
     timestamp_converter = TimestampConverter()
 
-    async def notification_handler_picker(self, _, data, data_storage, state, service, sensor):
+    async def notification_handler_imu(self, _, data, data_storage, state, service, sensor):
+        """Notification handler for one of IMU sensors"""
         d = DataView(data)
         check_len = d.get_length()
         if check_len == 70:

@@ -109,16 +109,6 @@ async def async_startup():
         while True:
             # Check if any scheduled event is due
             scheduler.run(False)
-            # Check for connection with server
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            result = sock.connect_ex((server_address, 5000))
-            if result == 0:
-                wifi_led.on()
-                print("Port is [bold green]open[/bold green]")
-            else:
-                wifi_led.off()
-                print("Port is not [bold red]open[/bold red]")
-            # Wait for 5 seconds
             await asyncio.sleep(5)
             time_elapsed = time_elapsed + 5
 

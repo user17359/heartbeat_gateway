@@ -13,9 +13,11 @@ from bt.sensor.supported.connections_dict import possible_connections
 from bt.sensor.timed_connection import launch_timed, start_connection, launch_stop, launch_disconnect
 from server.send_measurement import send_measurement
 
+
 class SensorService(Service):
     sensors = {}
     current_mac = ""
+    transfer_interval = 10
 
     def __init__(self, scheduler, bus, adapter, leds):
         # Base 16 service UUID, This should be a primary service.
@@ -25,17 +27,24 @@ class SensorService(Service):
         self.adapter = adapter
         self.bt_led = leds[0]
         self.wifi_led = leds[1]
+        self.transfer_event = None
 
     # Function called to create connection with sensor
     async def start_connection(self, mac):
         print("Connecting with " + mac)
         self.update_progress({"state": "scheduled", "info": str(self.sensors[mac]["run_at"].hour) + ":" +
-                                                    str(self.sensors[mac]["run_at"].minute)})
+                                                            str(self.sensors[mac]["run_at"].minute)})
         return await start_connection(mac, self.bus, self.adapter)
 
     # Function called on time set as start of measurement
     def start_measurement(self, mac):
         print("Measuring for " + mac + "...")
+
+        self.transfer_event = self.scheduler.enter(self.transfer_interval,
+                                              5,
+                                              self.data_transfer,
+                                              argument=(mac,))
+
         self.bt_led.on()
 
         launch_timed(
@@ -46,24 +55,35 @@ class SensorService(Service):
             client=self.sensors[mac]["client"],
             service=self)
 
+    def data_transfer(self, mac):
+        label = self.sensors[mac]["label"].replace(" ", "_")
+        data = self.sensors[mac]["data_storage"]
+
+        # appending data to .csv file
+        df = pd.DataFrame(data, columns=self.sensors[mac]["type"].get_df_header(self.sensors[mac]["units"][0]["name"]))
+        df.to_csv(label + '.csv', mode='a', header=False)
+
+        # sending measurement to server
+        send_measurement(df, label, self.sensors[mac]["type"].encoded_name, self.wifi_led)
+
+        self.transfer_event = self.scheduler.enter(self.transfer_interval,
+                                                   5,
+                                                   self.data_transfer,
+                                                   argument=(mac,))
+
     # Function called on time set as end of measurement
     def end_measurement(self, mac):
         print("End of measurement for " + mac)
         self.bt_led.off()
+
+        if self.transfer_event is not None:
+            self.scheduler.cancel(self.transfer_event)
 
         launch_stop(
             self.sensors[mac]["type"],
             self.sensors[mac]["client"],
             self
         )
-
-        # Saving gathered data to .csv file
-        label = self.sensors[mac]["label"].replace(" ", "_")
-        data = self.sensors[mac]["data_storage"]
-        df = pd.DataFrame(data, columns = self.sensors[mac]["type"].get_df_header(self.sensors[mac]["units"][0]["name"]))
-        df.to_csv(label + '.csv', index=False)
-        print("Data saved to [blue]" + label + ".csv[blue] :floppy_disk:")
-        send_measurement(df, label, self.sensors[mac]["type"].encoded_name, self.wifi_led)
 
     # Characteristic called to set up a new measurement at given time
     @characteristic("18c7e933-73cf-4d47-9973-51a53f0fec4e", CharFlags.WRITE_WITHOUT_RESPONSE)
@@ -126,9 +146,13 @@ class SensorService(Service):
                                             self.end_measurement,
                                             argument=(mac,))
 
-        # Choosing appropriate dataframe headers
         # TODO: more than one connection
         data_storage = []
+
+        # creating empty .csv with appropriate names
+        df = pd.DataFrame([], columns=self.sensors[mac]["type"].get_df_header(self.sensors[mac]["units"][0]["name"]))
+        label = self.sensors[mac]["label"].replace(" ", "_")
+        df.to_csv(label + '.csv', index=False)
 
         self.sensors[mac]["data_storage"] = data_storage
 
@@ -157,30 +181,32 @@ class SensorService(Service):
         print("Writing current mac: " + string_value)
         self.current_mac = string_value
 
+    # TODO: figure out if it will be needed anymore
+
     # Characteristic called to get current measurement state (empty/scheduled/measuring)
-    @characteristic("e946c454-6083-44d1-a726-076cecfc3744", CharFlags.READ)
-    def measurement_info(self, options):
-        print("Sending [bold green]measurement info[/bold green]")
-        if self.current_mac in self.sensors:
-            start_time = self.sensors[self.current_mac]["run_at"]
-            print("MAC is set")
-            info = {
-                "state": self.sensors[self.current_mac]["state"],
-                "label": self.sensors[self.current_mac]["label"],
-                "startTime": "{:02d}:{:02d}".format(start_time.hour, start_time.minute),
-                "units": self.sensors[self.current_mac]["units"]
-            }
-        else:
-            print("MAC is not set")
-            info = {
-                "state": "empty",
-                "label": "",
-                "startTime": "",
-                "units": []
-            }
-        json_list = json.dumps(info)
-        data = bytes(json_list, "utf-8")
-        return data
+    # @characteristic("e946c454-6083-44d1-a726-076cecfc3744", CharFlags.READ)
+    # def measurement_info(self, options):
+    #     print("Sending [bold green]measurement info[/bold green]")
+    #     if self.current_mac in self.sensors:
+    #         start_time = self.sensors[self.current_mac]["run_at"]
+    #         print("MAC is set")
+    #         info = {
+    #             "state": self.sensors[self.current_mac]["state"],
+    #             "label": self.sensors[self.current_mac]["label"],
+    #             "startTime": "{:02d}:{:02d}".format(start_time.hour, start_time.minute),
+    #             "units": self.sensors[self.current_mac]["units"]
+    #         }
+    #     else:
+    #         print("MAC is not set")
+    #         info = {
+    #             "state": "empty",
+    #             "label": "",
+    #             "startTime": "",
+    #             "units": []
+    #         }
+    #     json_list = json.dumps(info)
+    #     data = bytes(json_list, "utf-8")
+    #     return data
 
     # Characteristic called when user forces stopping measurement
     @characteristic("1fbbda31-a97a-4d1d-a4dd-a7c17b853dcd", CharFlags.READ)

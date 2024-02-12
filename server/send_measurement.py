@@ -14,7 +14,8 @@ f = open(filename, "r")
 post_token = f.read()
 f.close()
 # API endpoint
-url = "http://192.168.111.250:5000/new_measurement?token=" + post_token
+url = "http://" + server_address + ":5000/new_measurement?token=" + post_token
+
 
 def send_measurement(df: pd.DataFrame, label: str, sensor: str, wifi_led: LED):
 
@@ -53,6 +54,7 @@ def send_measurement(df: pd.DataFrame, label: str, sensor: str, wifi_led: LED):
         response = requests.post(url, json=payload)
         print("Response [blue]" + str(response.status_code) + "[/blue]")
 
-        wifi_led.off()
+        wifi_led.on()
     else:
         print("[red]Server can't be reached[/red]")
+        wifi_led.off()
