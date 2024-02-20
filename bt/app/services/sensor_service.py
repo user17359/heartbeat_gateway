@@ -94,8 +94,6 @@ class SensorService(Service):
     async def new_measurement(self, value, options):
         data = json.loads(value)
 
-        now = datetime.now()
-
         mac = data["mac"]
         self.current_mac = mac
 
@@ -103,20 +101,12 @@ class SensorService(Service):
 
         connection_type: Connection = possible_connections[data["type"]]
 
-        run_at = datetime(now.year,
-                          now.month,
-                          now.day,
-                          data["startHour"],
-                          data["startMinute"])
+        run_at = datetime.fromtimestamp(data["startMilliseconds"]/1000.0)
 
         #if data["nextDayStart"]:
         #    run_at += timedelta(days=1)
 
-        end_at = datetime(now.year,
-                          now.month,
-                          now.day,
-                          data["endHour"],
-                          data["endMinute"])
+        end_at = datetime.fromtimestamp(data["endMilliseconds"]/1000.0)
 
         print(run_at)
         print(end_at)
