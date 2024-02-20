@@ -109,14 +109,17 @@ class SensorService(Service):
                           data["startHour"],
                           data["startMinute"])
 
-        if data["nextDayStart"]:
-            run_at += timedelta(days=1)
+        #if data["nextDayStart"]:
+        #    run_at += timedelta(days=1)
 
         end_at = datetime(now.year,
                           now.month,
                           now.day,
                           data["endHour"],
                           data["endMinute"])
+
+        print(run_at)
+        print(end_at)
 
         if data["nextDayEnd"]:
             end_at += timedelta(days=1)
