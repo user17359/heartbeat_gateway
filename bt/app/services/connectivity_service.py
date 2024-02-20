@@ -38,5 +38,5 @@ class ConnectivityService(Service):
     @new_sensor.setter
     def new_sensor(self, value, options):
         data = json.loads(value)
-        sensor = BtDevice(data["name"], data["mac"])
+        sensor = BtDevice(data["name"], data["mac"], "waiting")
         self.sensor_list.append(sensor)

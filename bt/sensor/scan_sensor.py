@@ -14,5 +14,5 @@ async def scan_sensor():
     for device, adv_data in devices.values():
         if adv_data.local_name is not None:
             print(adv_data.local_name, device.address)
-            bt_list.append(BtDevice(adv_data.local_name, device.address))
+            bt_list.append(BtDevice(adv_data.local_name, device.address, "waiting"))
     return bt_list
