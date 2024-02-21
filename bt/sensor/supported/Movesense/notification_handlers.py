@@ -9,7 +9,7 @@ from rich import print
 class NotificationHandler:
     timestamp_converter = TimestampConverter()
 
-    async def notification_handler_imu(self, _, data, data_storage, state, service, sensor):
+    async def notification_handler_picker(self, _, data, data_storage, state, service, sensor):
         """Notification handler for one of IMU sensors"""
         d = DataView(data)
         check_len = d.get_length()
@@ -19,7 +19,6 @@ class NotificationHandler:
             await self.notification_handler_hr(_, d, data_storage, state, service)
         else:
             await self.notification_handler_imu(_, d, data_storage, state, service, sensor)
-
 
     async def notification_handler_imu(self, _, dv, data_storage, state, service, sensor):
         """Notification handler for one of IMU sensors"""
