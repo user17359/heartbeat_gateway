@@ -56,13 +56,15 @@ class SensorService(Service):
             service=self)
 
     def data_transfer(self, mac):
+        print("Reading data")
         label = self.sensors[mac]["label"].replace(" ", "_")
         data = self.sensors[mac]["data_storage"]
-
+        print("Creating dataframe")
         # appending data to .csv file
         df = pd.DataFrame(data, columns=self.sensors[mac]["type"].get_df_header(self.sensors[mac]["units"][0]["name"]))
+        print("Saving to .csv")
         df.to_csv(label + '.csv', mode='a', header=False)
-
+        print("Sending data to server")
         # sending measurement to server
         send_measurement(df, label, self.sensors[mac]["type"].encoded_name, self.wifi_led)
 

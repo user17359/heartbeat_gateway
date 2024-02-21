@@ -9,7 +9,7 @@ from rich import print
 class NotificationHandler:
     timestamp_converter = TimestampConverter()
 
-    async def notification_handler_imu(self, _, data, data_storage, state, service, sensor):
+    async def notification_handler_picker(self, _, data, data_storage, state, service, sensor):
         """Notification handler for one of IMU sensors"""
         d = DataView(data)
         check_len = d.get_length()
@@ -19,7 +19,6 @@ class NotificationHandler:
             await self.notification_handler_hr(_, d, data_storage, state, service)
         else:
             await self.notification_handler_imu(_, d, data_storage, state, service, sensor)
-
 
     async def notification_handler_imu(self, _, dv, data_storage, state, service, sensor):
         """Notification handler for one of IMU sensors"""
@@ -42,7 +41,7 @@ class NotificationHandler:
         if state["verbose"]:
             msg = ("timestamp: [bright_cyan]{}[/bright_cyan], x: [blue]{}[/blue], y: [blue]{}[/blue], z: [blue]{}[/blue]"
                    .format(converted_timestamp, x, y, z))
-            print(msg)
+            # print(msg)
 
     async def notification_handler_ecg(self, _, dv, data_storage, state, service):
         """Simple notification handler for ECG sensor"""
@@ -67,7 +66,7 @@ class NotificationHandler:
 
         if state["verbose"]:
             msg = "timestamp: [bright_cyan]{}[/bright_cyan], val: [blue]{}[/blue]".format(converted_timestamp, val)
-            print(msg)
+            # print(msg)
 
     async def notification_handler_hr(self, _, dv, data_storage, state, service):
         """Simple notification handler for heartrate"""
@@ -86,4 +85,4 @@ class NotificationHandler:
 
         if state["verbose"]:
             msg = "timestamp: [bright_cyan]{}[/bright_cyan], hr: [blue]{}[/blue], rr: [blue]{}[/blue]".format(timestamp, hr, rr)
-            print(msg)
+            # print(msg)
