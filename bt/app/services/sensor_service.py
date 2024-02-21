@@ -103,16 +103,14 @@ class SensorService(Service):
 
         run_at = datetime.fromtimestamp(data["startMilliseconds"]/1000.0)
 
-        #if data["nextDayStart"]:
-        #    run_at += timedelta(days=1)
-
         end_at = datetime.fromtimestamp(data["endMilliseconds"]/1000.0)
 
+        print("Start and end timestamps: ")
+        print(data["startMilliseconds"])
+        print(data["endMilliseconds"])
+        print("Start and end time: ")
         print(run_at)
         print(end_at)
-
-        if data["nextDayEnd"]:
-            end_at += timedelta(days=1)
 
         self.sensors[mac] = {"run_at": run_at,
                              "end_at": end_at,
