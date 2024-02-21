@@ -68,6 +68,9 @@ class SensorService(Service):
         # sending measurement to server
         send_measurement(df, label, self.sensors[mac]["type"].encoded_name, self.wifi_led)
 
+        print("Cleaning data storage")
+        self.sensors[mac]["data_storage"] = []
+
         self.transfer_event = self.scheduler.enter(self.transfer_interval,
                                                    5,
                                                    self.data_transfer,
