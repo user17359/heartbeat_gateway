@@ -3,17 +3,11 @@ from bt.sensor.supported.connection import Connection
 
 from rich import print
 
-ECG_VOLTAGE_UUID = (
-    "2BDD"
-)
+ECG_VOLTAGE_UUID = "2BDD"
 
-MOVEMENT_UUID = (
-    "2BE2"
-)
+MOVEMENT_UUID = "2BE2"
 
-HR_UUID = (
-    "180D"
-)
+HR_UUID = "180D"
 
 
 class MovesenseConnection(Connection):
