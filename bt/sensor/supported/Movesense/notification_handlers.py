@@ -12,52 +12,53 @@ class NotificationHandler:
     async def notification_handler_picker(self, _, data, data_storage, state, service, sensor):
         """Notification handler for one of IMU sensors"""
         d = DataView(data)
-        check_len = d.get_length()
-        if check_len == 70:
+        if sensor == "ecg":
             await self.notification_handler_ecg(_, d, data_storage, state, service)
-        elif check_len == 8:
+        elif sensor == "hr":
             await self.notification_handler_hr(_, d, data_storage, state, service)
         else:
             await self.notification_handler_imu(_, d, data_storage, state, service, sensor)
 
     async def notification_handler_imu(self, _, dv, data_storage, state, service, sensor):
         """Notification handler for one of IMU sensors"""
-        # Dig data from the binary
-        timestamp = dv.get_uint_32(2)
-        x = dv.get_float_32(6)
-        y = dv.get_float_32(10)
-        z = dv.get_float_32(14)
+        samples = 8
+        probing_frequency = 250
+        diff = (probing_frequency // samples)
 
+        imu_val = []
+
+        # Dig data from the binary
+        timestamp = dv.get_uint_32(0)
         converted_timestamp = self.timestamp_converter.convert_timestamp(timestamp)
 
-        # Adding data to dataframe for later saving
-        data_storage.append([converted_timestamp, x, y, z])
+        for i in range(0, samples):
+            for j in range(0, 9):
+                imu_val.append(dv.get_int_16(4 + i * 18 + (j * 2)))
+            # Adding data to dataframe for later saving
+            data_storage.append([converted_timestamp + (diff * i), imu_val[i]])
 
-        service.update_progress({"state": "measuring", "info": sensor + str(converted_timestamp)
-                                                               + ',' + sensor + str(x)
-                                                               + ',' + sensor + str(y)
-                                                               + ',' + sensor + str(z)})
+        service.update_progress({"state": "measuring", "info": "test"})
 
         if state["verbose"]:
-            msg = ("timestamp: [bright_cyan]{}[/bright_cyan], x: [blue]{}[/blue], y: [blue]{}[/blue], z: [blue]{}[/blue]"
-                   .format(converted_timestamp, x, y, z))
-            # print(msg)
+            msg = ("timestamp: [bright_cyan]{}[/bright_cyan], xyz [blue]{}[/blue]"
+                   .format(converted_timestamp, imu_val[0][0:3]))
+            print(msg)
 
     async def notification_handler_ecg(self, _, dv, data_storage, state, service):
         """Simple notification handler for ECG sensor"""
         val = []
         samples = 16
-        probing_frequency = 128
+        probing_frequency = 250
         diff = (probing_frequency // samples)
 
         # Dig data from the binary
-        timestamp = dv.get_uint_32(2)
+        timestamp = dv.get_uint_32(0)
         converted_timestamp = self.timestamp_converter.convert_timestamp(timestamp)
 
         info_string = "ecg" + str(converted_timestamp)
 
         for i in range(0, samples):
-            val.append(dv.get_int_32(6 + 4 * i))
+            val.append(dv.get_int_16(4 + 4 * i))
             # Adding data to dataframe for later saving
             data_storage.append([converted_timestamp + (diff * i), val[i]])
             info_string += ',ecg' + str(val[i])
@@ -66,23 +67,21 @@ class NotificationHandler:
 
         if state["verbose"]:
             msg = "timestamp: [bright_cyan]{}[/bright_cyan], val: [blue]{}[/blue]".format(converted_timestamp, val)
-            # print(msg)
+            print(msg)
 
     async def notification_handler_hr(self, _, dv, data_storage, state, service):
         """Simple notification handler for heartrate"""
 
         # Dig data from the binary
-        hr = dv.get_float_32(2)
-        rr = dv.get_uint_16(6)
+        rr = dv.get_uint_16(0)
 
         timestamp = datetime.now().timestamp() * 1000
 
         service.update_progress({"state": "measuring", "info": "hr" + str(timestamp)
-                                                               + ',' + "hr" + str(hr)
                                                                + ',' + "hr" + str(rr)})
 
-        data_storage.append([timestamp, hr, rr])
+        data_storage.append([timestamp, rr])
 
         if state["verbose"]:
-            msg = "timestamp: [bright_cyan]{}[/bright_cyan], hr: [blue]{}[/blue], rr: [blue]{}[/blue]".format(timestamp, hr, rr)
-            # print(msg)
+            msg = "timestamp: [bright_cyan]{}[/bright_cyan], rr: [blue]{}[/blue]".format(timestamp, rr)
+            print(msg)

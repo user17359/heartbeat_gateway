@@ -41,6 +41,11 @@ class DataView:
         binary = self.__get_binary(start_index, bytes_to_read)
         return struct.unpack('<l', binary)[0]
 
+    def get_int_16(self, start_index):
+        bytes_to_read = 2
+        binary = self.__get_binary(start_index, bytes_to_read)
+        return struct.unpack('<h', binary)[0]
+
     def get_float_32(self, start_index):
         bytes_to_read = 4
         binary = self.__get_binary(start_index, bytes_to_read)
