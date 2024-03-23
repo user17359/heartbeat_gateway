@@ -2,12 +2,13 @@ from bt.sensor.supported.Movesense.notification_handlers import NotificationHand
 from bt.sensor.supported.connection import Connection
 
 from rich import print
+from bleak.uuids import normalize_uuid_16
 
-ECG_VOLTAGE_UUID = "2BDD"
+ECG_VOLTAGE_UUID = normalize_uuid_16(0x2BDD)
 
-MOVEMENT_UUID = "2BE2"
+MOVEMENT_UUID = normalize_uuid_16(0x2BE2)
 
-HR_UUID = "180D"
+HR_UUID = normalize_uuid_16(0x180D)
 
 
 class MovesenseConnection(Connection):
