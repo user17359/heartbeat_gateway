@@ -8,7 +8,7 @@ ECG_VOLTAGE_UUID = normalize_uuid_16(0x2BDD)
 
 MOVEMENT_UUID = normalize_uuid_16(0x2BE2)
 
-HR_UUID = normalize_uuid_16(0x180D)
+HR_UUID = normalize_uuid_16(0x2A37)
 
 
 class MovesenseConnection(Connection):
@@ -48,5 +48,6 @@ class MovesenseConnection(Connection):
 
     async def stop_connection(self, client):
         for sub in self.subscriptions:
+            print('Cancelling' + str(sub))
             await client.stop_notify(sub)
         print("Unsubscribing")

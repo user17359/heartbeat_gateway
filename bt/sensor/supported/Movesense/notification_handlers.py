@@ -22,7 +22,7 @@ class NotificationHandler:
     async def notification_handler_imu(self, _, dv, data_storage, state, service, sensor):
         """Notification handler for one of IMU sensors"""
         samples = 8
-        probing_frequency = 250
+        probing_frequency = 52
         diff = (probing_frequency // samples)
 
         imu_val = []
@@ -58,7 +58,7 @@ class NotificationHandler:
         info_string = "ecg" + str(converted_timestamp)
 
         for i in range(0, samples):
-            val.append(dv.get_int_16(4 + 4 * i))
+            val.append(dv.get_int_16(4 + 2 * i))
             # Adding data to dataframe for later saving
             data_storage.append([converted_timestamp + (diff * i), val[i]])
             info_string += ',ecg' + str(val[i])
