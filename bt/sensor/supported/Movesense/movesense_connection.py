@@ -32,7 +32,7 @@ class MovesenseConnection(Connection):
     async def start_connection(self, data_storage, state, client, service, units):
         try:
             if units[0]["name"] == "ecg":
-                client.write_gatt_char(ECG_PROBING_UUID, probing_to_diff[units[0]["probing"]])
+                await client.write_gatt_char(ECG_PROBING_UUID, probing_to_diff[units[0]["probing"]])
                 diff = int.from_bytes((await client.read_gatt_char(ECG_PROBING_UUID))[:1], byteorder='little')
 
                 async def handler(_, data):
@@ -48,7 +48,7 @@ class MovesenseConnection(Connection):
                 await client.start_notify(HR_UUID, handler)
                 self.subscriptions.append(HR_UUID)
             else:
-                client.write_gatt_char(MOVEMENT_PROBING_UUID, probing_to_diff[units[0]["probing"]])
+                await client.write_gatt_char(MOVEMENT_PROBING_UUID, probing_to_diff[units[0]["probing"]])
                 diff = int.from_bytes((await client.read_gatt_char(MOVEMENT_PROBING_UUID))[:1], byteorder='little')
 
                 async def handler(_, data):
