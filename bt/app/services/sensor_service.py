@@ -56,20 +56,20 @@ class SensorService(Service):
             service=self)
 
     def data_transfer(self, mac):
-        print("Reading data")
-        label = self.sensors[mac]["label"].replace(" ", "_")
-        data = self.sensors[mac]["data_storage"]
-        print("Creating dataframe")
-        # appending data to .csv file
-        df = pd.DataFrame(data, columns=self.sensors[mac]["type"].get_df_header(self.sensors[mac]["units"][0]["name"]))
-        print("Saving to .csv")
-        df.to_csv(label + '.csv', mode='a', header=False)
-        print("Sending data to server")
-        # sending measurement to server
-        send_measurement(df, label, self.sensors[mac]["type"].encoded_name, self.wifi_led)
-
-        print("Cleaning data storage")
-        self.sensors[mac]["data_storage"].clear()
+        for unit in self.sensors[mac]["units"]:
+            print("Reading data")
+            label = self.sensors[mac]["label"].replace(" ", "_") + '_' + unit["name"]
+            data = self.sensors[mac]["data_storage"][unit["name"]]
+            print("Creating dataframe")
+            # appending data to .csv file
+            df = pd.DataFrame(data, columns=self.sensors[mac]["type"].get_df_header(unit["name"]))
+            print("Saving to .csv")
+            df.to_csv(label + '.csv', mode='a', header=False)
+            print("Sending data to server")
+            # sending measurement to server
+            send_measurement(df, label, self.sensors[mac]["type"].encoded_name, self.wifi_led)
+            print("Cleaning data storage")
+            self.sensors[mac]["data_storage"][unit["name"]].clear()
 
         self.transfer_event = self.scheduler.enter(self.transfer_interval,
                                                    5,
@@ -143,12 +143,16 @@ class SensorService(Service):
                                             argument=(mac,))
 
         # TODO: more than one connection
-        data_storage = []
+        data_storage = {}
 
         # creating empty .csv with appropriate names
-        df = pd.DataFrame([], columns=self.sensors[mac]["type"].get_df_header(self.sensors[mac]["units"][0]["name"]))
-        label = self.sensors[mac]["label"].replace(" ", "_")
-        df.to_csv(label + '.csv', index=False)
+        for unit in self.sensors[mac]["units"]:
+
+            data_storage[unit["name"]] = []
+
+            df = pd.DataFrame([], columns=self.sensors[mac]["type"].get_df_header(unit["name"]))
+            label = self.sensors[mac]["label"].replace(" ", "_") + '_' + unit["name"]
+            df.to_csv(label + '.csv', index=False)
 
         self.sensors[mac]["data_storage"] = data_storage
 

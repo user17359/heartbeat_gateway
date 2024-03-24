@@ -31,31 +31,34 @@ class MovesenseConnection(Connection):
 
     async def start_connection(self, data_storage, state, client, service, units):
         try:
-            if units[0]["name"] == "ecg":
-                await client.write_gatt_char(ECG_PROBING_UUID, probing_to_diff[units[0]["probing"]])
-                diff = int.from_bytes((await client.read_gatt_char(ECG_PROBING_UUID))[:1], byteorder='little')
+            for unit in units:
+                if unit["name"] == "ecg":
+                    await client.write_gatt_char(ECG_PROBING_UUID, probing_to_diff[unit["probing"]])
+                    diff = int.from_bytes((await client.read_gatt_char(ECG_PROBING_UUID))[:1], byteorder='little')
 
-                async def handler(_, data):
-                    d = DataView(data)
-                    await self.notification_handler.notification_handler_ecg(_, d, data_storage, state, service,
-                                                                             diff)
-                await client.start_notify(ECG_VOLTAGE_UUID, handler)
-                self.subscriptions.append(ECG_VOLTAGE_UUID)
-            elif units[0]["name"] == "hr":
-                async def handler(_, data):
-                    d = DataView(data)
-                    await self.notification_handler.notification_handler_hr(_, d, data_storage, state, service)
-                await client.start_notify(HR_UUID, handler)
-                self.subscriptions.append(HR_UUID)
-            else:
-                await client.write_gatt_char(MOVEMENT_PROBING_UUID, probing_to_diff[units[0]["probing"]])
-                diff = int.from_bytes((await client.read_gatt_char(MOVEMENT_PROBING_UUID))[:1], byteorder='little')
+                    async def handler(_, data):
+                        d = DataView(data)
+                        await self.notification_handler.notification_handler_ecg(_, d, data_storage[unit["name"]], state,
+                                                                                 service, diff)
+                    await client.start_notify(ECG_VOLTAGE_UUID, handler)
+                    self.subscriptions.append(ECG_VOLTAGE_UUID)
+                elif unit["name"] == "hr":
+                    async def handler(_, data):
+                        d = DataView(data)
+                        await self.notification_handler.notification_handler_hr(_, d, data_storage[unit["name"]], state,
+                                                                                service)
+                    await client.start_notify(HR_UUID, handler)
+                    self.subscriptions.append(HR_UUID)
+                else:
+                    await client.write_gatt_char(MOVEMENT_PROBING_UUID, probing_to_diff[unit["probing"]])
+                    diff = int.from_bytes((await client.read_gatt_char(MOVEMENT_PROBING_UUID))[:1], byteorder='little')
 
-                async def handler(_, data):
-                    d = DataView(data)
-                    await self.notification_handler.notification_handler_imu(_, d, data_storage, state, service, diff)
-                await client.start_notify(MOVEMENT_UUID, handler)
-                self.subscriptions.append(MOVEMENT_UUID)
+                    async def handler(_, data):
+                        d = DataView(data)
+                        await self.notification_handler.notification_handler_imu(_, d, data_storage[unit["name"]], state,
+                                                                                 service, diff)
+                    await client.start_notify(MOVEMENT_UUID, handler)
+                    self.subscriptions.append(MOVEMENT_UUID)
 
             if state["verbose"]:
                 print("Subscribing datastream")
