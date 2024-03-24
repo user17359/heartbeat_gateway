@@ -25,17 +25,19 @@ class NotificationHandler:
         probing_frequency = 52
         diff = (probing_frequency // samples)
 
-        imu_val = []
+        val = []
 
         # Dig data from the binary
         timestamp = dv.get_uint_32(0)
         converted_timestamp = self.timestamp_converter.convert_timestamp(timestamp)
 
         for i in range(0, samples):
+            imu_val = []
             for j in range(0, 9):
                 imu_val.append(dv.get_int_16(4 + i * 18 + (j * 2)))
             # Adding data to dataframe for later saving
-            data_storage.append([converted_timestamp + (diff * i), imu_val[i]])
+            val.append(imu_val)
+            data_storage.append([converted_timestamp + (diff * i), val[i]])
 
         service.update_progress({"state": "measuring", "info": "test"})
 
