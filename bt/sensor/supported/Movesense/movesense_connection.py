@@ -4,6 +4,8 @@ from bt.sensor.supported.connection import Connection
 from rich import print
 from bleak.uuids import normalize_uuid_16
 
+from bt.sensor.utils.data_view import DataView
+
 ECG_VOLTAGE_UUID = normalize_uuid_16(0x2BDD)
 ECG_PROBING_UUID = normalize_uuid_16(0x2BE3)
 
@@ -33,20 +35,23 @@ class MovesenseConnection(Connection):
                 diff = int.from_bytes((await client.read_gatt_char(ECG_PROBING_UUID))[:1], byteorder='little')
 
                 async def handler(_, data):
-                    await self.notification_handler.notification_handler_ecg(_, data, data_storage, state, service,
+                    d = DataView(data)
+                    await self.notification_handler.notification_handler_ecg(_, d, data_storage, state, service,
                                                                              diff)
                 await client.start_notify(ECG_VOLTAGE_UUID, handler)
                 self.subscriptions.append(ECG_VOLTAGE_UUID)
             elif units[0]["name"] == "hr":
                 async def handler(_, data):
-                    await self.notification_handler.notification_handler_hr(_, data, data_storage, state, service)
+                    d = DataView(data)
+                    await self.notification_handler.notification_handler_hr(_, d, data_storage, state, service)
                 await client.start_notify(HR_UUID, handler)
                 self.subscriptions.append(HR_UUID)
             else:
                 diff = int.from_bytes((await client.read_gatt_char(MOVEMENT_PROBING_UUID))[:1], byteorder='little')
 
                 async def handler(_, data):
-                    await self.notification_handler.notification_handler_imu(_, data, data_storage, state, service,
+                    d = DataView(data)
+                    await self.notification_handler.notification_handler_imu(_, d, data_storage, state, service,
                                                                              units[0], diff)
                 await client.start_notify(MOVEMENT_UUID, handler)
                 self.subscriptions.append(MOVEMENT_UUID)
