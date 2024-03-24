@@ -73,14 +73,15 @@ class NotificationHandler:
         """Simple notification handler for heartrate"""
 
         # Dig data from the binary
-        rr = dv.get_uint_16(0)
+        hr = dv.get_uint_8(0)
+        rr = dv.get_uint_16(1)
 
         timestamp = datetime.now().timestamp() * 1000
 
         service.update_progress({"state": "measuring", "info": "hr" + str(timestamp)
                                                                + ',' + "hr" + str(rr)})
 
-        data_storage.append([timestamp, rr])
+        data_storage.append([timestamp, hr, rr])
 
         if state["verbose"]:
             msg = "timestamp: [bright_cyan]{}[/bright_cyan], rr: [blue]{}[/blue]".format(timestamp, rr)
