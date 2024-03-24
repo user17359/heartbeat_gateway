@@ -5,8 +5,10 @@ from rich import print
 from bleak.uuids import normalize_uuid_16
 
 ECG_VOLTAGE_UUID = normalize_uuid_16(0x2BDD)
+ECG_PROBING_UUID = normalize_uuid_16(0x2BE3)
 
 MOVEMENT_UUID = normalize_uuid_16(0x2BE2)
+MOVEMENT_PROBING_UUID = normalize_uuid_16(0x2BE4)
 
 HR_UUID = normalize_uuid_16(0x2A37)
 
@@ -26,17 +28,25 @@ class MovesenseConnection(Connection):
 
     async def start_connection(self, data_storage, state, client, service, units):
         try:
-            # choosing handler appropriate to received data
-            async def handler(_, data):
-                await self.notification_handler.notification_handler_picker(_, data, data_storage, state, service, units[0]["name"])
-
             if units[0]["name"] == "ecg":
+                diff = await client.read_gatt_char(ECG_PROBING_UUID).get_uint_8(0)
+
+                async def handler(_, data):
+                    await self.notification_handler.notification_handler_ecg(_, data, data_storage, state, service,
+                                                                             diff)
                 await client.start_notify(ECG_VOLTAGE_UUID, handler)
                 self.subscriptions.append(ECG_VOLTAGE_UUID)
             elif units[0]["name"] == "hr":
+                async def handler(_, data):
+                    await self.notification_handler.notification_handler_hr(_, data, data_storage, state, service)
                 await client.start_notify(HR_UUID, handler)
                 self.subscriptions.append(HR_UUID)
             else:
+                diff = await client.read_gatt_char(MOVEMENT_PROBING_UUID).get_uint_8(0)
+
+                async def handler(_, data):
+                    await self.notification_handler.notification_handler_imu(_, data, data_storage, state, service,
+                                                                             units[0], diff)
                 await client.start_notify(MOVEMENT_UUID, handler)
                 self.subscriptions.append(MOVEMENT_UUID)
 

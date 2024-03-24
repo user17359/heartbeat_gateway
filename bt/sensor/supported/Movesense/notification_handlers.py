@@ -1,30 +1,15 @@
 from datetime import datetime
 
 from bt.sensor.supported.Movesense.timestamp_to_utf import TimestampConverter
-from bt.sensor.utils.data_view import DataView
-
 from rich import print
 
 
 class NotificationHandler:
     timestamp_converter = TimestampConverter()
 
-    async def notification_handler_picker(self, _, data, data_storage, state, service, sensor):
-        """Notification handler for one of IMU sensors"""
-        d = DataView(data)
-        if sensor == "ecg":
-            await self.notification_handler_ecg(_, d, data_storage, state, service)
-        elif sensor == "hr":
-            await self.notification_handler_hr(_, d, data_storage, state, service)
-        else:
-            await self.notification_handler_imu(_, d, data_storage, state, service, sensor)
-
-    async def notification_handler_imu(self, _, dv, data_storage, state, service, sensor):
+    async def notification_handler_imu(self, _, dv, data_storage, state, service, sensor, diff):
         """Notification handler for one of IMU sensors"""
         samples = 8
-        probing_frequency = 52
-        diff = (probing_frequency // samples)
-
         val = []
 
         # Dig data from the binary
@@ -37,21 +22,19 @@ class NotificationHandler:
                 imu_val.append(dv.get_int_16(4 + i * 18 + (j * 2)))
             # Adding data to dataframe for later saving
             val.append(imu_val)
-            data_storage.append([converted_timestamp + (diff * i), val[i]])
+            data_storage.append([converted_timestamp + (diff * i)] + [val[i]])
 
         service.update_progress({"state": "measuring", "info": "test"})
 
         if state["verbose"]:
             msg = ("timestamp: [bright_cyan]{}[/bright_cyan], xyz [blue]{}[/blue]"
-                   .format(converted_timestamp, imu_val[0][0:3]))
+                   .format(converted_timestamp, val[0][0:3]))
             print(msg)
 
-    async def notification_handler_ecg(self, _, dv, data_storage, state, service):
+    async def notification_handler_ecg(self, _, dv, data_storage, state, service, diff):
         """Simple notification handler for ECG sensor"""
         val = []
         samples = 16
-        probing_frequency = 250
-        diff = (probing_frequency // samples)
 
         # Dig data from the binary
         timestamp = dv.get_uint_32(0)
@@ -75,8 +58,8 @@ class NotificationHandler:
         """Simple notification handler for heartrate"""
 
         # Dig data from the binary
-        hr = dv.get_uint_8(0)
-        rr = dv.get_uint_16(1)
+        hr = dv.get_uint_8(1)
+        rr = dv.get_uint_16(2)
 
         timestamp = datetime.now().timestamp() * 1000
 
