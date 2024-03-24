@@ -7,7 +7,7 @@ from rich import print
 class NotificationHandler:
     timestamp_converter = TimestampConverter()
 
-    async def notification_handler_imu(self, _, dv, data_storage, state, service, sensor, diff):
+    async def notification_handler_imu(self, _, dv, data_storage, state, service, diff):
         """Notification handler for one of IMU sensors"""
         samples = 8
         val = []
@@ -20,9 +20,15 @@ class NotificationHandler:
             imu_val = []
             for j in range(0, 9):
                 imu_val.append(dv.get_int_16(4 + i * 18 + (j * 2)))
+
+            # conversion due to characteristic sending data in int16's
+            imu_val[0:3] = [acc / 100.0 for acc in imu_val[0:3]]
+            imu_val[3:6] = [gyro / 10.0 for gyro in imu_val[3:6]]
+            imu_val[6:9] = [acc / 100.0 for acc in imu_val[6:9]]
+
             # Adding data to dataframe for later saving
             val.append(imu_val)
-            data_storage.append([converted_timestamp + (diff * i)] + [val[i]])
+            data_storage.append([converted_timestamp + (diff * i)] + val[i])
 
         service.update_progress({"state": "measuring", "info": "test"})
 

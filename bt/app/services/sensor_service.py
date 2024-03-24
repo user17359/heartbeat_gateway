@@ -41,9 +41,9 @@ class SensorService(Service):
         print("Measuring for " + mac + "...")
 
         self.transfer_event = self.scheduler.enter(self.transfer_interval,
-                                              5,
-                                              self.data_transfer,
-                                              argument=(mac,))
+                                                   5,
+                                                   self.data_transfer,
+                                                   argument=(mac,))
 
         self.bt_led.on()
 
@@ -106,9 +106,9 @@ class SensorService(Service):
 
         connection_type: Connection = possible_connections[data["type"]]
 
-        run_at = datetime.fromtimestamp(data["startMilliseconds"]/1000.0)
+        run_at = datetime.fromtimestamp(data["startMilliseconds"] / 1000.0)
 
-        end_at = datetime.fromtimestamp(data["endMilliseconds"]/1000.0)
+        end_at = datetime.fromtimestamp(data["endMilliseconds"] / 1000.0)
 
         print("Start and end timestamps: ")
         print(data["startMilliseconds"])
