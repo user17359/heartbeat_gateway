@@ -17,7 +17,7 @@ f.close()
 url = "http://" + server_address + ":5000/new_measurement?token=" + post_token
 
 
-def send_measurement(df: pd.DataFrame, label: str, sensor: str, wifi_led: LED):
+def send_measurement(df: list, header: list, label: str, sensor: str, wifi_led: LED):
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     result = sock.connect_ex((server_address, 5000))
@@ -28,19 +28,18 @@ def send_measurement(df: pd.DataFrame, label: str, sensor: str, wifi_led: LED):
         wifi_led.blink()
         payload = []
 
-        for index, row in df.iterrows():
+        for data_point in df:
 
             time = 0
             fields = {}
 
-            for key in row.keys():
+            i = 0
+            for key in header:
                 if key == "timestamp":
-                    time = row[key]
+                    time = data_point[i]
                 else:
-                    if row[key].dtype == np.int64 or row[key].dtype == np.int32:
-                        fields[key] = int(row[key])
-                    else:
-                        fields[key] = row[key]
+                    fields[key] = data_point[i]
+                i = i + 1
 
             entry = {
                 "measurement": label,

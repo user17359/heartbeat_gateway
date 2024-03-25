@@ -19,12 +19,10 @@ class NotificationHandler:
         for i in range(0, samples):
             imu_val = []
             for j in range(0, 9):
-                imu_val.append(dv.get_int_16(4 + i * 18 + (j * 2)))
-
-            # conversion due to characteristic sending data in int16's
-            imu_val[0:3] = [acc / 100.0 for acc in imu_val[0:3]]
-            imu_val[3:6] = [gyro / 10.0 for gyro in imu_val[3:6]]
-            imu_val[6:9] = [acc / 100.0 for acc in imu_val[6:9]]
+                if j in (0, 1, 2, 6, 7, 8):
+                    imu_val.append(dv.get_int_16(4 + i * 18 + (j * 2)) / 100.0)
+                else:
+                    imu_val.append(dv.get_int_16(4 + i * 18 + (j * 2)) / 10.0)
 
             # Adding data to dataframe for later saving
             val.append(imu_val)

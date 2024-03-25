@@ -17,7 +17,7 @@ from server.send_measurement import send_measurement
 class SensorService(Service):
     sensors = {}
     current_mac = ""
-    transfer_interval = 300
+    transfer_interval = 10
 
     def __init__(self, scheduler, bus, adapter, leds):
         # Base 16 service UUID, This should be a primary service.
@@ -56,25 +56,26 @@ class SensorService(Service):
             service=self)
 
     def data_transfer(self, mac):
-        self.transfer_event = self.scheduler.enter(self.transfer_interval,
-                                                   5,
-                                                   self.data_transfer,
-                                                   argument=(mac,))
-
         for unit in self.sensors[mac]["units"]:
             print("Reading data")
             label = self.sensors[mac]["label"].replace(" ", "_") + '_' + unit["name"]
             data = self.sensors[mac]["data_storage"][unit["name"]]
+            header = self.sensors[mac]["type"].get_df_header(unit["name"])
             print("Creating dataframe")
             # appending data to .csv file
-            df = pd.DataFrame(data, columns=self.sensors[mac]["type"].get_df_header(unit["name"]))
+            df = pd.DataFrame(data, columns=header)
             print("Saving to .csv")
             df.to_csv(label + '.csv', mode='a', header=False)
             print("Sending data to server")
             # sending measurement to server
-            send_measurement(df, label, self.sensors[mac]["type"].encoded_name, self.wifi_led)
+            send_measurement(data, header, label, self.sensors[mac]["type"].encoded_name, self.wifi_led)
             print("Cleaning data storage")
             self.sensors[mac]["data_storage"][unit["name"]].clear()
+
+        self.transfer_event = self.scheduler.enter(self.transfer_interval,
+                                                   5,
+                                                   self.data_transfer,
+                                                   argument=(mac,))
 
     # Function called on time set as end of measurement
     def end_measurement(self, mac):
