@@ -22,6 +22,8 @@ def send_measurement(df: pd.DataFrame, label: str, sensor: str, wifi_led: LED):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     result = sock.connect_ex((server_address, 5000))
 
+    print("Finished connection checking")
+
     if result == 0:
         wifi_led.blink()
         payload = []
@@ -51,6 +53,7 @@ def send_measurement(df: pd.DataFrame, label: str, sensor: str, wifi_led: LED):
 
             payload.append(entry)
 
+        print("Posting data...")
         response = requests.post(url, json=payload)
         print("Response [blue]" + str(response.status_code) + "[/blue]")
 
