@@ -16,6 +16,7 @@ f.close()
 # API endpoint
 url = "http://" + server_address + ":5000/new_measurement?token=" + post_token
 
+timeout = 15
 
 def send_measurement(df: list, header: list, label: str, sensor: str, wifi_led: LED):
 
@@ -53,7 +54,7 @@ def send_measurement(df: list, header: list, label: str, sensor: str, wifi_led: 
             payload.append(entry)
 
         print("Posting data...")
-        response = requests.post(url, json=payload)
+        response = requests.post(url, json=payload, timeout=timeout)
         print("Response [blue]" + str(response.status_code) + "[/blue]")
 
         wifi_led.on()
