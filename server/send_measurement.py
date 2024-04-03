@@ -54,15 +54,22 @@ def send_measurement(df: list, header: list, label: str, sensor: str, wifi_led: 
         print("Posting data...")
         try:
             response = requests.post(url, json=payload, timeout=timeout)
+            response.raise_for_status()
             wifi_led.on()
             print("Response [blue]" + str(response.status_code) + "[/blue]")
             return True
-        except requests.exceptions.Timeout:
-            print("Timeout after [blue]" + str(timeout) + "[/blue]")
+        except requests.exceptions.HTTPError as errh:
+            print("[red]Http Error:[/red]", errh)
             return False
-
-
-
+        except requests.exceptions.ConnectionError as errc:
+            print("[red]Error Connecting:[/red]", errc)
+            return False
+        except requests.exceptions.Timeout as errt:
+            print("[red]Timeout Error:[/red]", errt)
+            return False
+        except requests.exceptions.RequestException as err:
+            print("[red]OOps: Something Else[/red]", err)
+            return False
 
     else:
         print("[red]Server can't be reached[/red]")
