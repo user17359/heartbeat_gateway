@@ -1,5 +1,3 @@
-import pandas as pd
-import numpy as np
 import requests
 from rich import print
 from gpiozero import LED
@@ -54,10 +52,18 @@ def send_measurement(df: list, header: list, label: str, sensor: str, wifi_led: 
             payload.append(entry)
 
         print("Posting data...")
-        response = requests.post(url, json=payload, timeout=timeout)
-        print("Response [blue]" + str(response.status_code) + "[/blue]")
+        try:
+            response = requests.post(url, json=payload, timeout=timeout)
+            wifi_led.on()
+            print("Response [blue]" + str(response.status_code) + "[/blue]")
+            return True
+        except requests.exceptions.Timeout:
+            print("Timeout after [blue]" + str(timeout) + "[/blue]")
+            return False
 
-        wifi_led.on()
+
+
+
     else:
         print("[red]Server can't be reached[/red]")
         wifi_led.off()

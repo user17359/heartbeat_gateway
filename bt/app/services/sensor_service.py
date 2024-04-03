@@ -68,9 +68,12 @@ class SensorService(Service):
             df.to_csv(label + '.csv', mode='a', header=False)
             print("Sending data to server")
             # sending measurement to server
-            send_measurement(data, header, label, self.sensors[mac]["type"].encoded_name, self.wifi_led)
-            print("Cleaning data storage")
-            self.sensors[mac]["data_storage"][unit["name"]].clear()
+            result = send_measurement(data, header, label, self.sensors[mac]["type"].encoded_name, self.wifi_led)
+            if result:
+                print("Cleaning data storage")
+                self.sensors[mac]["data_storage"][unit["name"]].clear()
+            else:
+                print("Saving data for retry")
 
         self.transfer_event = self.scheduler.enter(self.transfer_interval,
                                                    5,
