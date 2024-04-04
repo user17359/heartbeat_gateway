@@ -14,7 +14,7 @@ f.close()
 # API endpoint
 url = "http://" + server_address + ":5000/new_measurement?token=" + post_token
 
-timeout = 15
+timeout = 180
 
 def send_measurement(df: list, header: list, label: str, sensor: str, wifi_led: LED):
 

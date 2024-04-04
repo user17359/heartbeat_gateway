@@ -17,7 +17,7 @@ from server.send_measurement import send_measurement
 class SensorService(Service):
     sensors = {}
     current_mac = ""
-    transfer_interval = 10
+    transfer_interval = 60
 
     def __init__(self, scheduler, bus, adapter, leds):
         # Base 16 service UUID, This should be a primary service.
@@ -57,6 +57,8 @@ class SensorService(Service):
 
     def data_transfer(self, mac):
         for unit in self.sensors[mac]["units"]:
+            timestamp = datetime.now()
+            print("TIMESTAMP", timestamp)
             print("Reading data")
             label = self.sensors[mac]["label"].replace(" ", "_") + '_' + unit["name"]
             data = self.sensors[mac]["data_storage"][unit["name"]]
@@ -70,10 +72,10 @@ class SensorService(Service):
             # sending measurement to server
             result = send_measurement(data, header, label, self.sensors[mac]["type"].encoded_name, self.wifi_led)
             if result:
-                print("Cleaning data storage")
+                print("Cleaning data storage: [orange]" + str(len(self.sensors[mac]["data_storage"][unit["name"]])) + "[/orange] rows")
                 self.sensors[mac]["data_storage"][unit["name"]].clear()
             else:
-                print("Saving data for retry")
+                print("Saving data for retry: [orange]" + str(len(self.sensors[mac]["data_storage"][unit["name"]])) + "[/orange] rows")
 
         self.transfer_event = self.scheduler.enter(self.transfer_interval,
                                                    5,
